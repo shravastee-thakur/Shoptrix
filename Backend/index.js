@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
 import logger from "./utils/logger.js";
+import userRoutes from "./routes/UserRoute.js";
 
 const app = express();
 connectDb();
@@ -30,7 +31,8 @@ app.use(
 );
 
 // Routes
-// app.use("/api/v1/user", )
+app.use("/api/v1/user", userRoutes);
+// http://localhost:8000/api/v1/user/register
 
 app.use(errorHandler);
 
