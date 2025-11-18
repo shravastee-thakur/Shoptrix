@@ -30,8 +30,8 @@ const Login = () => {
   //   };
 
   return (
-    <section className="my-4 mt-8 md:mt-28 flex justify-center items-center">
-      <div className="relative w-10/12 sm:w-3/4 md:w-2/5 lg:w-1/4 border-2 p-4 md:p-6 bg-white shadow-xl rounded-lg overflow-hidden">
+    <section className="my-3 mt-4 lg:mt-20 flex justify-center items-center">
+      <div className="relative w-10/12 sm:w-3/4 md:w-2/5 lg:w-1/4 border-2 p-4 md:p-4 bg-white shadow-xl rounded-lg overflow-hidden">
         <h1 className="text-center mt-3 text-2xl font-bold text-[#92487A]">
           Login
         </h1>
@@ -89,6 +89,9 @@ const Login = () => {
               >
                 Register
               </NavLink> */}
+            </p>
+            <p className="mt-2 text-left text-xs">
+              Admin: shratestcode@gmail.com <br /> Password: shra6789{" "}
             </p>
           </div>
         </form>

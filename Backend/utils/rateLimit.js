@@ -4,7 +4,7 @@ import { redis } from "./redis.js";
 export async function rateLimit(key, limit, windowSec) {
   const fullKey = `ratelimit:${key}`;
 
-  const count = redis.incr(fullKey);
+  const count = await redis.incr(fullKey);
   if (count === 1) {
     await redis.expire(fullKey, windowSec);
   }
