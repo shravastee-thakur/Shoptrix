@@ -50,7 +50,7 @@ export const Register = async (req, res, next) => {
 
     await saveTempUser(email, { name, email, password, role });
 
-    const verifyLink = `${process.env.FRONTEND_URL}/verify?email=${email}&otp=${otp}`;
+    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?email=${email}&otp=${otp}`;
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: email,
@@ -106,6 +106,9 @@ export const VerifyEmail = async (req, res, next) => {
         message: "Invalid OTP",
       });
     }
+
+    console.log("Received email:", email);
+    console.log("Stored OTP:", storedOtp);
 
     const storedUser = await getTempUser(email);
 

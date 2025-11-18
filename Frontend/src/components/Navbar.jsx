@@ -52,14 +52,14 @@ const Navbar = () => {
 
           {/* Desktop Search Bar + Button */}
           <form
-            onSubmit={handleSearch}
+         
             className="hidden md:flex md:mx-6 lg:mx-8"
           >
             <div className="relative flex">
               <input
                 type="text"
                 value={searchQuery}
-                // onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
                 className="px-4 py-2 rounded-l-lg text-gray-800 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 w-64 lg:w-80"
               />
@@ -180,7 +180,7 @@ const Navbar = () => {
               <input
                 type="text"
                 value={searchQuery}
-                // onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
                 className="flex-1 px-3 py-2 text-gray-800 placeholder-gray-500 text-sm rounded-l-lg focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
