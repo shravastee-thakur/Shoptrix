@@ -1,9 +1,15 @@
 import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setUserId } from "../../redux/UserSlice";
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -18,6 +24,38 @@ const Login = () => {
     console.log(formData);
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/loginStepOne",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+
+        dispatch(setUserId(res.data.userId));
+        navigate("/verify-login");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -26,7 +64,7 @@ const Login = () => {
             <h2 className="text-2xl font-bold text-center">Login</h2>
           </div>
 
-          <form className="p-6">
+          <form onSubmit={handleLogin} className="p-6">
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -76,7 +114,7 @@ const Login = () => {
 
             <div className="text-right mb-3">
               <p className="text-black-600 text-sm text-[#001BB7]">
-                Forget password?
+                <Link to={"/forget-password"}>Forget password?</Link>
               </p>
             </div>
 

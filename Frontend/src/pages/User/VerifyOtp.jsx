@@ -1,6 +1,13 @@
+import axios from "axios";
 import { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { setAccessToken, setIsVerified, setName } from "../../redux/UserSlice";
 
 const VerifyOtp = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.user.userId);
   const [otp, setOtp] = useState("");
   const inputRef = useRef(null);
 
@@ -10,6 +17,33 @@ const VerifyOtp = () => {
     }
   }, []);
 
+  const handleOtp = async (e) => {
+    e.preventDefault();
+    console.log("userId", userId);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/verify-login",
+        { userId: String(userId), otp: String(otp) },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        navigate("/");
+        dispatch(setAccessToken(res.data.accessToken));
+        dispatch(setIsVerified(res.data.user.isVerified));
+        dispatch(setName(res.data.user.name));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -18,7 +52,7 @@ const VerifyOtp = () => {
             <h2 className="text-2xl font-bold text-center">Verify OTP</h2>
           </div>
 
-          <form className="p-6">
+          <form onSubmit={handleOtp} className="p-6">
             <div className="mb-6">
               <label
                 htmlFor="otp"

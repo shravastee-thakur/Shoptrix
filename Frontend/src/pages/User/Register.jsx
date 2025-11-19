@@ -50,6 +50,7 @@ const Register = () => {
         navigate("/verify-email");
       }
     } catch (error) {
+      console.log(error);
       toast.error(error);
     }
   };

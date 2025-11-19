@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import DoneSharpIcon from "@mui/icons-material/DoneSharp";
+import ClearOutlinedIcon from "@mui/icons-material/ClearOutlined";
 import axios from "axios";
 
+
 const VerifyEmail = () => {
+
   const [searchParams] = useSearchParams();
   const otp = searchParams.get("otp");
   const rawEmail = searchParams.get("email");
@@ -10,10 +14,16 @@ const VerifyEmail = () => {
 
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("");
+  const [hasVerified, setHasVerified] = useState(false);
 
   const verify = async () => {
-    console.log("Email from URL:", email);
-    console.log("OTP from URL:", otp);
+    if (hasVerified) return;
+
+    if (!otp || !email) {
+      setStatus("error");
+      setMessage("Invalid verification link. Missing email or OTP.");
+      return;
+    }
 
     try {
       const res = await axios.post(
@@ -27,7 +37,7 @@ const VerifyEmail = () => {
 
       if (res.data.success) {
         console.log(res.data);
-
+        setHasVerified(true);
         setStatus("success");
         setMessage("Your email has been verified! Your account is now active.");
       } else {
@@ -68,46 +78,20 @@ const VerifyEmail = () => {
           {status === "success" ? (
             <>
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <DoneSharpIcon className="text-green-700" fontSize="large" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 Email Verified!
               </h2>
               <p className="text-gray-600 mb-6">{message}</p>
               <p className="inline-block bg-[#92487A] hover:bg-[#75325f] text-white font-bold py-2 px-6 rounded-md transition">
-                Go to Login
+                <Link to={"/login"}>Go to Login</Link>
               </p>
             </>
           ) : (
             <>
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <ClearOutlinedIcon className="text-red-500" fontSize="large" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 Verification Failed

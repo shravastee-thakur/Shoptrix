@@ -1,7 +1,38 @@
 import { useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const ForgetPassword = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
+
+  const handleForgetPassword = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/forgot-password",
+        { email },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+        navigate("/reset-password");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
@@ -11,7 +42,7 @@ const ForgetPassword = () => {
             <h2 className="text-2xl font-bold text-center">Reset Password</h2>
           </div>
 
-          <form className="p-6">
+          <form onSubmit={handleForgetPassword} className="p-6">
             <div className="mb-6">
               <label
                 htmlFor="email"

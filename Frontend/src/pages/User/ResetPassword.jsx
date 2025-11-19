@@ -1,13 +1,50 @@
 import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import axios from "axios";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const ResetPassword = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const userId = searchParams.get("id");
+
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isFormValid = newPassword.length >= 6;
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/reset-password",
+        { userId, token, newPassword },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
@@ -17,7 +54,7 @@ const ResetPassword = () => {
             <h2 className="text-2xl font-bold text-center">Set New Password</h2>
           </div>
 
-          <form className="p-6">
+          <form onSubmit={handleResetPassword} className="p-6">
             {/* New Password */}
             <div className="mb-6">
               <label

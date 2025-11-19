@@ -107,9 +107,6 @@ export const VerifyEmail = async (req, res, next) => {
       });
     }
 
-    console.log("Received email:", email);
-    console.log("Stored OTP:", storedOtp);
-
     const storedUser = await getTempUser(email);
 
     if (!storedUser) {

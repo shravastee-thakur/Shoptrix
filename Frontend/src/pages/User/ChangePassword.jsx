@@ -1,13 +1,52 @@
 import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const ChangePassword = () => {
+  const { userId, accessToken } = useSelector((state) => state.user);
+
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
+  const handleChangePassword = async (e) => {
+    console.log("accessToken", accessToken);
+    console.log("userId", userId);
+
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/change-password",
+        { userId, oldPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
@@ -17,7 +56,7 @@ const ChangePassword = () => {
             <h2 className="text-2xl font-bold text-center">Change Password</h2>
           </div>
 
-          <form className="p-6">
+          <form onSubmit={handleChangePassword} className="p-6">
             {/* Old Password */}
             <div className="mb-5">
               <label

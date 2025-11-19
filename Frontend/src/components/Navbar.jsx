@@ -1,7 +1,18 @@
 import { useState } from "react";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import SearchSharpIcon from "@mui/icons-material/SearchSharp";
+import { useDispatch, useSelector } from "react-redux";
+import { setIsVerified } from "../redux/UserSlice";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { userId, isVerified, name, accessToken, role } = useSelector(
+    (state) => state.user
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -12,34 +23,37 @@ const Navbar = () => {
     // e.g., router.push(`/search?q=${searchQuery}`) or API call
   };
 
-  // const handleLogout = async () => {
-  //   try {
-  //     const res = await axios.post(
-  //       "http://localhost:3000/api/v1/user/logout",
-  //       { userId },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //         withCredentials: true,
-  //       }
-  //     );
-  //     console.log(res.data);
-  //     if (res.data.success) {
-  //       toast(res.data.message, {
-  //         style: {
-  //           borderRadius: "10px",
-  //           background: "#333",
-  //           color: "#fff",
-  //         },
-  //       });
-  //       dispatch(setIsVerified(false));
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+  const handleLogout = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/user/logout",
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+
+        dispatch(setIsVerified(false));
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   return (
     <nav className="bg-[#92487A] text-white">
@@ -51,10 +65,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Search Bar + Button */}
-          <form
-         
-            className="hidden md:flex md:mx-6 lg:mx-8"
-          >
+          <form className="hidden md:flex md:mx-6 lg:mx-8">
             <div className="relative flex">
               <input
                 type="text"
@@ -68,20 +79,7 @@ const Navbar = () => {
                 className="bg-gray-800 hover:bg-gray-900 text-white px-4 rounded-r-lg flex items-center justify-center transition h-full"
                 aria-label="Search"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                <SearchSharpIcon />
               </button>
             </div>
           </form>
@@ -96,12 +94,12 @@ const Navbar = () => {
                 About
               </p>
 
-              {/* {isVerified ? (
+              {isVerified ? (
                 <div className="flex gap-6">
                   <p className="text-yellow-300 transition font-semibold">
                     Welcome,
                     <Link to={"/profile"}>
-                      <span className="font-bold">{name}</span>
+                      <span className="font-bold"> {name}</span>
                     </Link>
                   </p>
                   {role === "admin" && (
@@ -120,7 +118,7 @@ const Navbar = () => {
                 <p className="hover:text-yellow-200 transition font-semibold">
                   <Link to="/login">Login</Link>
                 </p>
-              )} */}
+              )}
 
               {/* Cart Icon */}
               <p className="relative hover:text-yellow-200 transition font-semibold">
@@ -133,7 +131,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          {/* <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md hover:text-white hover:bg-gray-800 focus:outline-none"
@@ -167,7 +165,7 @@ const Navbar = () => {
                 />
               </svg>
             </button>
-          </div> */}
+          </div>
         </div>
       </div>
 
@@ -189,39 +187,44 @@ const Navbar = () => {
                 className="bg-gray-800 hover:bg-gray-900 text-white px-3 rounded-r-lg flex items-center justify-center"
                 aria-label="Search"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                <SearchSharpIcon />
               </button>
             </div>
           </form>
-
-          <p className="block px-3 py-2 rounded-md font-bold text-yellow-300">
-            Welcome, {name}
-          </p>
-
-          <p className="block px-3 py-2 rounded-md font-semibold">Products</p>
-          <p className="block px-3 py-2 rounded-md font-semibold">About</p>
+          {isVerified && (
+            <p className="block px-3 py-2 rounded-md font-bold text-yellow-300">
+              Welcome, {name}
+            </p>
+          )}
 
           <p
-            // onClick={handleLogout}
-            className="block px-3 py-2  font-semibold cursor-pointer"
+            onClick={() => setIsOpen(!isOpen)}
+            className="block px-3 py-2 rounded-md font-semibold"
           >
-            Logout
+            Products
+          </p>
+          <p
+            onClick={() => setIsOpen(!isOpen)}
+            className="block px-3 py-2 rounded-md font-semibold"
+          >
+            About
           </p>
 
-          <p className="block px-3 py-2  font-semibold">Login</p>
+          {isVerified ? (
+            <p
+              onClick={handleLogout}
+              className="block px-3 py-2  font-semibold cursor-pointer"
+            >
+              Logout
+            </p>
+          ) : (
+            <p
+              onClick={() => setIsOpen(!isOpen)}
+              className="block px-3 py-2  font-semibold"
+            >
+              <Link to={"/login"}>Login</Link>
+            </p>
+          )}
         </div>
       </div>
     </nav>
