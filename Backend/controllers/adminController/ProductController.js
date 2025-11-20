@@ -97,7 +97,7 @@ export const updateProduct = async (req, res, next) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    const updatedImage = product.image;
+    let updatedImage = product.image;
     // If new file uploaded
     if (req.file) {
       // delete old image first

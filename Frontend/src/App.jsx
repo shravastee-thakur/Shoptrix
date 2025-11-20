@@ -10,8 +10,51 @@ import ForgetPassword from "./pages/User/ForgetPassword";
 import ResetPassword from "./pages/User/ResetPassword";
 import { Toaster } from "react-hot-toast";
 import Admin from "./pages/Admin/Admin";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { setAccessToken, setRole, logout } from "./redux/UserSlice";
 
 const App = () => {
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.user.accessToken);
+  const [isTokenRefreshed, setIsTokenRefreshed] = useState(false);
+
+  useEffect(() => {
+    const getRefreshToken = async () => {
+      try {
+        const res = await axios.post(
+          "http://localhost:8000/api/v1/user/refresh-handler",
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+        if (res.data.success) {
+          dispatch(setAccessToken(res.data.accessToken));
+          dispatch(setRole(res.data.user.role));
+        }
+      } catch (error) {
+        console.error("Token refresh failed:", error);
+        // If refresh fails, clear the expired token
+        dispatch(logout());
+      } finally {
+        setIsTokenRefreshed(true);
+      }
+    };
+
+    // ALWAYS try to refresh token on app load, regardless of existing accessToken
+    getRefreshToken();
+  }, [dispatch]);
+
+  // Show loading while refreshing token
+  if (!isTokenRefreshed) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
   return (
     <div className="bg-gray-100 ">
       <div>

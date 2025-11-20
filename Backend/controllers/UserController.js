@@ -268,7 +268,7 @@ export const RefreshTokenHandler = async (req, res, next) => {
 
     const decoded = verifyRefreshToken(refreshToken);
 
-    const user = await User.findOne({ _id: decoded.id, refreshToken: token });
+    const user = await User.findOne({ _id: decoded.id, refreshToken });
 
     if (!user) {
       return res

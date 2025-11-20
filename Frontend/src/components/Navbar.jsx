@@ -13,6 +13,7 @@ const Navbar = () => {
   const { userId, isVerified, name, accessToken, role } = useSelector(
     (state) => state.user
   );
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -104,7 +105,7 @@ const Navbar = () => {
                   </p>
                   {role === "admin" && (
                     <p className="hover:text-yellow-200 transition font-semibold">
-                      <Link to="/admin-dashboard">Admin</Link>
+                      <Link to="/admin">Admin</Link>
                     </p>
                   )}
                   <p
@@ -232,3 +233,7 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+

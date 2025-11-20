@@ -1,33 +1,11 @@
-// AdminProductPage.jsx
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
 const Admin = () => {
+  const { accessToken } = useSelector((state) => state.user);
   const [activeTab, setActiveTab] = useState("all-products");
-  const [products] = useState([
-    {
-      id: 1,
-      title: "Wireless Headphones",
-      description: "High-quality noise-cancelling headphones.",
-      category: "Electronics",
-      brand: "SoundMax",
-      price: 129.99,
-      totalStock: 50,
-      averageReview: 4.5,
-      image: "https://placehold.co/300x300?text=Headphones",
-    },
-    {
-      id: 2,
-      title: "Running Shoes",
-      description: "Lightweight and breathable running shoes.",
-      category: "Footwear",
-      brand: "RunFast",
-      price: 89.99,
-      totalStock: 100,
-      averageReview: 4.2,
-      image: "https://placehold.co/300x300?text=Shoes",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -94,6 +72,60 @@ const Admin = () => {
     closeModal();
   };
 
+  // get all products
+  const getAllProducts = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:8000/api/v1/admin/product/getAllProduct",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        setProducts(res.data.products);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getAllProducts();
+  }, [accessToken]);
+
+  // delete product
+  const handleDelete = async (id) => {
+    console.log(accessToken);
+
+    try {
+      const res = await axios.delete(
+        `http://localhost:8000/api/v1/admin/product/deleteProduct/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log(res.data);
+
+      if (res.data.success) {
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product._id !== id)
+        );
+        alert(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Tabs */}
@@ -123,12 +155,12 @@ const Admin = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {products.map((product) => (
             <div
-              key={product.id}
+              key={product._id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="h-40 flex items-center justify-center bg-gray-50 p-4">
                 <img
-                  src={product.image}
+                  src={product.image[0].url}
                   alt={product.title}
                   className="max-h-full max-w-full object-contain"
                 />
@@ -141,7 +173,7 @@ const Admin = () => {
                   {product.category} • {product.brand}
                 </p>
                 <p className="text-[#FA812F] font-bold mb-3">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toLocaleString()}
                 </p>
                 <div className="flex space-x-2">
                   <button
@@ -150,7 +182,10 @@ const Admin = () => {
                   >
                     Edit
                   </button>
-                  <button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded text-sm transition-colors">
+                  <button
+                    onClick={() => handleDelete(product._id)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded text-sm transition-colors"
+                  >
                     Delete
                   </button>
                 </div>

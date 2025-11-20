@@ -2,7 +2,12 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { setAccessToken, setIsVerified, setName } from "../../redux/UserSlice";
+import {
+  setAccessToken,
+  setIsVerified,
+  setName,
+  setRole,
+} from "../../redux/UserSlice";
 
 const VerifyOtp = () => {
   const navigate = useNavigate();
@@ -38,6 +43,7 @@ const VerifyOtp = () => {
         dispatch(setAccessToken(res.data.accessToken));
         dispatch(setIsVerified(res.data.user.isVerified));
         dispatch(setName(res.data.user.name));
+        dispatch(setRole(res.data.user.role));
       }
     } catch (error) {
       console.log(error);
