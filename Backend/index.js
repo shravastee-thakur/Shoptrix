@@ -8,6 +8,7 @@ import helmet from "helmet";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
 import logger from "./utils/logger.js";
 import userRoutes from "./routes/UserRoute.js";
+import productAdminRoutes from "./routes/adminRoute/ProductRoute.js";
 
 const app = express();
 connectDb();
@@ -33,6 +34,8 @@ app.use(
 // Routes
 app.use("/api/v1/user", userRoutes);
 // http://localhost:8000/api/v1/user/register
+app.use("/api/v1/admin/product", productAdminRoutes);
+// http://localhost:8000/api/v1/admin/product/createProduct
 
 app.use(errorHandler);
 

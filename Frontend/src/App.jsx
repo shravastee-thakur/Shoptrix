@@ -9,6 +9,7 @@ import ChangePassword from "./pages/User/ChangePassword";
 import ForgetPassword from "./pages/User/ForgetPassword";
 import ResetPassword from "./pages/User/ResetPassword";
 import { Toaster } from "react-hot-toast";
+import Admin from "./pages/Admin/Admin";
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </BrowserRouter>
     </div>
