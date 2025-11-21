@@ -62,7 +62,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-[65px]">
           {/* Logo */}
           <div className="flex-shrink-0 font-bold text-xl md:text-2xl lg:text-3xl">
-            Shoptrix
+            <Link to={"/"}>Shoptrix</Link>
           </div>
 
           {/* Desktop Search Bar + Button */}
@@ -89,7 +89,7 @@ const Navbar = () => {
           <div className="hidden md:flex">
             <div className="flex items-center space-x-4 lg:space-x-6">
               <p className="hover:text-yellow-200 transition font-semibold">
-                Products
+                <Link to={"/all-products"}>Products</Link>
               </p>
               <p className="hover:text-yellow-200 transition font-semibold">
                 About
@@ -202,7 +202,7 @@ const Navbar = () => {
             onClick={() => setIsOpen(!isOpen)}
             className="block px-3 py-2 rounded-md font-semibold"
           >
-            Products
+            <Link to={"/all-products"}>Products</Link>
           </p>
           <p
             onClick={() => setIsOpen(!isOpen)}
@@ -233,7 +233,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-
-
-

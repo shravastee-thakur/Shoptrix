@@ -14,6 +14,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { setAccessToken, setRole, logout } from "./redux/UserSlice";
+import ProductPage from "./pages/Products/Allproducts";
+import ProductDetailPage from "./pages/Products/ProductDetails";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -72,6 +74,8 @@ const App = () => {
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/all-products" element={<ProductPage />} />
+          <Route path="/product-detail" element={<ProductDetailPage />} />
         </Routes>
       </BrowserRouter>
     </div>

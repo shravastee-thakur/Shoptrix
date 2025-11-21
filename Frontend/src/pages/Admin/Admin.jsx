@@ -9,7 +9,8 @@ const Admin = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
+
+  const emptyForm = {
     title: "",
     description: "",
     category: "",
@@ -18,10 +19,11 @@ const Admin = () => {
     totalStock: "",
     averageReview: "",
     image: null,
-  });
+  };
 
-  const fileInputRef = useRef(null);
+  const [formData, setFormData] = useState(emptyForm);
 
+  // Open Edit Modal
   const openEditModal = (product) => {
     setEditingProduct(product);
     setFormData({
@@ -32,8 +34,15 @@ const Admin = () => {
       price: product.price.toString(),
       totalStock: product.totalStock.toString(),
       averageReview: product.averageReview.toString(),
-      image: product.image,
+      image: null,
     });
+    setIsModalOpen(true);
+  };
+
+  // Open Create Modal
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormData(emptyForm);
     setIsModalOpen(true);
   };
 
@@ -43,33 +52,53 @@ const Admin = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, files } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
   };
 
-  const handleImageDrop = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setFormData({ ...formData, image: URL.createObjectURL(file) });
+    const data = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+
+    try {
+      if (editingProduct) {
+        await axios.put(
+          `http://localhost:8000/api/v1/admin/product/updateProduct/${editingProduct._id}`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "multipart/form-data",
+            },
+            withCredentials: true,
+          }
+        );
+      } else {
+        await axios.post(
+          "http://localhost:8000/api/v1/admin/product/createProduct",
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "multipart/form-data",
+            },
+            withCredentials: true,
+          }
+        );
+      }
+      getAllProducts();
+      closeModal();
+    } catch (error) {
+      console.log(error);
     }
-  };
-
-  const handleImageUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileInputChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setFormData({ ...formData, image: URL.createObjectURL(file) });
-    }
-  };
-
-  const handleSave = () => {
-    // Save logic (e.g., API call)
-    console.log("Updated product:", { ...editingProduct, ...formData });
-    closeModal();
   };
 
   // get all products
@@ -126,161 +155,140 @@ const Admin = () => {
     }
   };
 
+  const fields = [
+    { label: "Title", name: "title" },
+    { label: "Description", name: "description" },
+    { label: "Category", name: "category" },
+    { label: "Brand", name: "brand" },
+    { label: "Price", name: "price", type: "number" },
+    { label: "Total Stock", name: "totalStock", type: "number" },
+    { label: "Average Review", name: "averageReview", type: "number" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-6">
+      <div className="mb-6 border-b">
+        <nav className="flex gap-6">
           {["all-orders", "all-products", "dashboard"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`py-2 px-1 font-medium text-sm ${
+              className={`py-2 font-medium ${
                 activeTab === tab
                   ? "text-[#FA812F] border-b-2 border-[#FA812F]"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-500"
               }`}
             >
-              {tab
-                .split("-")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ")}
+              {tab.replace("-", " ").toUpperCase()}
             </button>
           ))}
         </nav>
       </div>
 
-      {/* Content */}
-      {activeTab === "all-products" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+      {/* Products */}
+      {activeTab === "all-products" && (
+        <>
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={openCreateModal}
+              className="bg-purple-800 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
             >
-              <div className="h-40 flex items-center justify-center bg-gray-50 p-4">
+              + Create Product
+            </button>
+          </div>
+
+          {/* Product Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {products.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white p-4 rounded-lg shadow hover:shadow-lg"
+              >
                 <img
-                  src={product.image[0].url}
+                  src={product.image[0]?.url}
                   alt={product.title}
-                  className="max-h-full max-w-full object-contain"
+                  className="h-40 w-full object-contain"
                 />
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-800 text-sm mb-1">
-                  {product.title}
-                </h3>
-                <p className="text-gray-600 text-xs mb-2">
+                <h3 className="font-semibold mt-3">{product.title}</h3>
+                <p className="text-gray-600 text-sm">
                   {product.category} • {product.brand}
                 </p>
-                <p className="text-[#FA812F] font-bold mb-3">
+                <p className="text-[#FA812F] font-bold text-lg">
                   ₹{product.price.toLocaleString()}
                 </p>
-                <div className="flex space-x-2">
+
+                <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => openEditModal(product)}
-                    className="flex-1 bg-[#92487A] hover:bg-[#75325f] text-white py-1.5 rounded text-sm transition-colors"
+                    className="flex-1 bg-purple-600 text-white py-1.5 rounded"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(product._id)}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded text-sm transition-colors"
+                    className="flex-1 bg-red-500 text-white py-1.5 rounded"
                   >
                     Delete
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-600">
-          {activeTab === "all-orders"
-            ? "All Orders Content"
-            : "Dashboard Content"}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
-      {/* Edit Modal */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-xl rounded-lg p-6  max-h-[90vh] overflow-y-auto ">
+            <h2 className="text-xl font-bold mb-4">
+              {editingProduct ? "Edit Product" : "Create Product"}
+            </h2>
 
-              <div className="space-y-4">
-                {/* Image Dropzone */}
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50"
-                  onDrop={handleImageDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                  onClick={handleImageUploadClick}
-                >
-                  {formData.image ? (
-                    <img
-                      src={formData.image}
-                      alt="Preview"
-                      className="mx-auto h-32 object-contain"
-                    />
-                  ) : (
-                    <p className="text-gray-500">
-                      Drag & drop an image here or click to upload
-                    </p>
-                  )}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileInputChange}
-                  />
-                </div>
+            {/* Image Input */}
+            <div className="border-2 border-dashed rounded-lg p-4 text-center mb-4">
+              <p className="text-gray-500">Upload product image</p>
 
-                {/* Form Fields */}
-                {[
-                  { label: "Title", name: "title" },
-                  { label: "Description", name: "description" },
-                  { label: "Category", name: "category" },
-                  { label: "Brand", name: "brand" },
-                  { label: "Price ($)", name: "price", type: "number" },
-                  { label: "Total Stock", name: "totalStock", type: "number" },
-                  {
-                    label: "Average Review",
-                    name: "averageReview",
-                    type: "number",
-                    step: "0.1",
-                  },
-                ].map((field) => (
-                  <div key={field.name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {field.label}
-                    </label>
-                    <input
-                      type={field.type || "text"}
-                      name={field.name}
-                      value={formData[field.name]}
-                      onChange={handleInputChange}
-                      step={field.step}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FA812F]"
-                    />
-                  </div>
-                ))}
+              <input
+                type="file"
+                name="image"
+                onChange={handleInputChange}
+                accept="image/*"
+                className="mt-2"
+              />
+            </div>
+
+            {/* Inputs */}
+            {fields.map((field) => (
+              <div key={field.name} className="mb-3">
+                <label className="block text-sm font-medium mb-1">
+                  {field.label}
+                </label>
+                <input
+                  type={field.type || "text"}
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleInputChange}
+                  className="w-full border px-3 py-2 rounded"
+                />
               </div>
+            ))}
 
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-[#FA812F] text-white rounded-md hover:bg-[#e8721f] transition-colors"
-                >
-                  Save Changes
-                </button>
-              </div>
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-200 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-[#FA812F] text-white rounded"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
