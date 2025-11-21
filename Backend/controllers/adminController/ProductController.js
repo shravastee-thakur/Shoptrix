@@ -67,26 +67,6 @@ export const createProduct = async (req, res, next) => {
   }
 };
 
-export const getAllProduct = async (req, res, next) => {
-  try {
-    const products = await Product.find();
-    if (!products) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Products not found" });
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: "Product fetched successfully",
-      products,
-    });
-  } catch (error) {
-    next(error);
-    logger.error(`Error in create product ${error.message}`);
-  }
-};
-
 export const updateProduct = async (req, res, next) => {
   try {
     const productId = req.params.id;

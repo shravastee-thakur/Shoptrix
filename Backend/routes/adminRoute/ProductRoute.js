@@ -2,7 +2,6 @@ import express from "express";
 import {
   createProduct,
   deleteProduct,
-  getAllProduct,
   updateProduct,
 } from "../../controllers/adminController/ProductController.js";
 import allowRole from "../../middlewares/roleMiddleware.js";
@@ -18,7 +17,6 @@ router.post(
   upload.single("image"),
   createProduct
 );
-router.get("/getAllProduct", getAllProduct);
 router.put(
   "/updateProduct/:id",
   authenticate,

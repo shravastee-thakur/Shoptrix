@@ -1,10 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { useSelector } from "react-redux";
 
 const ProductPage = () => {
-  const { accessToken } = useSelector((state) => state.user);
   const [products, setProducts] = useState([]);
 
   const allCategories = ["all", ...new Set(products.map((p) => p.category))];
@@ -43,10 +41,9 @@ const ProductPage = () => {
   const fetchAllProducts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8000/api/v1/admin/product/getAllProduct",
+        "http://localhost:8000/api/v1/product/getAllProduct",
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
           withCredentials: true,
@@ -66,7 +63,7 @@ const ProductPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-4 pb-8 px-4">
+    <div className="min-h-screen pt-4 pb-8 px-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
           Shop Products
@@ -105,8 +102,8 @@ const ProductPage = () => {
             >
               {/* Clickable Image - Links to Product Detail */}
               <Link
-                to={`/product/${product._id}`}
-                className="h-40 flex items-center justify-center bg-gray-50 p-4"
+                to={`/product-detail/${product._id}`}
+                className="h-40 flex items-center justify-center p-4"
               >
                 <img
                   src={product.image[0]?.url}

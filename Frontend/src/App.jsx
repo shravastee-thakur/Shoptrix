@@ -37,7 +37,9 @@ const App = () => {
           dispatch(setRole(res.data.user.role));
         }
       } catch (error) {
-        console.error("Token refresh failed:", error);
+        if (error.response?.status !== 401) {
+          console.error("Token refresh failed:", error);
+        }
         // If refresh fails, clear the expired token
         dispatch(logout());
       } finally {
@@ -75,7 +77,7 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/all-products" element={<ProductPage />} />
-          <Route path="/product-detail" element={<ProductDetailPage />} />
+          <Route path="/product-detail/:id" element={<ProductDetailPage />} />
         </Routes>
       </BrowserRouter>
     </div>

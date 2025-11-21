@@ -105,10 +105,9 @@ const Admin = () => {
   const getAllProducts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8000/api/v1/admin/product/getAllProduct",
+        "http://localhost:8000/api/v1/product/getAllProduct",
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
           withCredentials: true,
@@ -124,7 +123,7 @@ const Admin = () => {
   };
   useEffect(() => {
     getAllProducts();
-  }, [accessToken]);
+  }, []);
 
   // delete product
   const handleDelete = async (id) => {
