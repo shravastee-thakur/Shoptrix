@@ -1,6 +1,6 @@
-import Cart from "../models/CartModel.js";
-import Product from "../models/ProductModel.js";
-import logger from "../utils/logger.js";
+import Cart from "../../models/CartModel.js";
+import Product from "../../models/ProductModel.js";
+import logger from "../../utils/logger.js";
 
 export const getCart = async (req, res, next) => {
   try {
@@ -120,23 +120,23 @@ export const removeFromCart = async (req, res, next) => {
   }
 };
 
-export const clearCart = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
+// export const clearCart = async (req, res, next) => {
+//   try {
+//     const userId = req.user.id;
 
-    const cart = await Cart.findOne({ userId });
-    if (!cart) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Cart not found" });
-    }
+//     const cart = await Cart.findOne({ userId });
+//     if (!cart) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Cart not found" });
+//     }
 
-    cart.items = [];
-    await cart.save();
+//     cart.items = [];
+//     await cart.save();
 
-    return res.status(200).json({ success: true, cart });
-  } catch (error) {
-    next(error);
-    logger.error(`Error in clear cart ${error.message}`);
-  }
-};
+//     return res.status(200).json({ success: true, cart });
+//   } catch (error) {
+//     next(error);
+//     logger.error(`Error in clear cart ${error.message}`);
+//   }
+// };

@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCartState } from "../../redux/CartSlice";
 
 const ProductDetailPage = () => {
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.user.accessToken);
   const { id } = useParams();
 
   const [product, setProduct] = useState(null);
@@ -82,6 +86,28 @@ const ProductDetailPage = () => {
       .slice(0, 2);
   }, [product, allProducts]);
 
+  const handleAddToCart = async (product) => {
+    dispatch(addToCartState({ productId: product._id, quantity: 1 }));
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/cart/addToCart",
+        { productId: product._id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log("Added to cart:", product.title);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   if (!product) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -138,7 +164,10 @@ const ProductDetailPage = () => {
             </p>
           </div>
 
-          <button className="bg-[#D34E4E] hover:bg-[#cf3f3f] text-white font-medium py-3 px-8 rounded-lg transition duration-300 w-full sm:w-auto">
+          <button
+            onClick={() => handleAddToCart(product)}
+            className="bg-[#D34E4E] hover:bg-[#cf3f3f] text-white font-medium py-3 px-8 rounded-lg transition duration-300 w-full sm:w-auto"
+          >
             Add to Cart
           </button>
         </div>

@@ -8,6 +8,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const Navbar = () => {
+  const cartCount = useSelector((state) => state.cart.totalQuantity);
+  console.log(cartCount);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userId, isVerified, name, accessToken, role } = useSelector(
@@ -91,9 +94,6 @@ const Navbar = () => {
               <p className="hover:text-yellow-200 transition font-semibold">
                 <Link to={"/all-products"}>Products</Link>
               </p>
-              <p className="hover:text-yellow-200 transition font-semibold">
-                About
-              </p>
 
               {isVerified ? (
                 <div className="flex gap-6">
@@ -123,10 +123,14 @@ const Navbar = () => {
 
               {/* Cart Icon */}
               <p className="relative hover:text-yellow-200 transition font-semibold">
-                <ShoppingCartOutlinedIcon fontSize="medium" />
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                  3
-                </span>
+                <Link to={"/cart"}>
+                  <ShoppingCartOutlinedIcon fontSize="medium" />
+                </Link>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -203,12 +207,6 @@ const Navbar = () => {
             className="block px-3 py-2 rounded-md font-semibold"
           >
             <Link to={"/all-products"}>Products</Link>
-          </p>
-          <p
-            onClick={() => setIsOpen(!isOpen)}
-            className="block px-3 py-2 rounded-md font-semibold"
-          >
-            About
           </p>
 
           {isVerified ? (

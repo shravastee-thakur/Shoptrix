@@ -1,8 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCartState } from "../../redux/CartSlice";
 
 const ProductPage = () => {
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.user.accessToken);
   const [products, setProducts] = useState([]);
 
   const allCategories = ["all", ...new Set(products.map((p) => p.category))];
@@ -62,6 +66,28 @@ const ProductPage = () => {
     fetchAllProducts();
   }, []);
 
+  const handleAddToCart = async (product) => {
+    dispatch(addToCartState({ productId: product._id, quantity: 1 }));
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/cart/addToCart",
+        { productId: product._id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log("Added to cart:", product.title);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-4 pb-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -70,7 +96,7 @@ const ProductPage = () => {
         </h1>
 
         {/* Filter Controls - Top Right */}
-        <div className="flex justify-end gap-3 mb-6 flex-wrap">
+        <div className="flex justify-end gap-3 mb-6 ">
           <select
             value={filters.category}
             onChange={handleCategoryChange}
@@ -115,8 +141,13 @@ const ProductPage = () => {
                 <h3 className="font-semibold text-gray-800 text-sm mb-1">
                   {product.title}
                 </h3>
-                <p className="text-blue-600 font-bold">₹{product.price.toLocaleString()}</p>
-                <button className="mt-2 w-full bg-[#D34E4E] hover:bg-[#cf3f3f] text-white py-1.5 rounded text-sm transition-colors">
+                <p className="text-blue-600 font-bold">
+                  ₹{product.price.toLocaleString()}
+                </p>
+                <button
+                  onClick={() => handleAddToCart(product)}
+                  className="mt-2 w-full bg-[#D34E4E] hover:bg-[#cf3f3f] text-white py-1.5 rounded text-sm transition-colors"
+                >
                   Add to Cart
                 </button>
               </div>

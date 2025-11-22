@@ -16,6 +16,7 @@ import axios from "axios";
 import { setAccessToken, setRole, logout } from "./redux/UserSlice";
 import ProductPage from "./pages/Products/Allproducts";
 import ProductDetailPage from "./pages/Products/ProductDetails";
+import Cart from "./pages/Products/Cart";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -78,6 +79,7 @@ const App = () => {
           <Route path="/admin" element={<Admin />} />
           <Route path="/all-products" element={<ProductPage />} />
           <Route path="/product-detail/:id" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </BrowserRouter>
     </div>
