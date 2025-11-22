@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
 
   const [product, setProduct] = useState(null);
+  const [allProducts, setAllProducts] = useState([]);
+
   const [reviewText, setReviewText] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviews, setReviews] = useState([
@@ -47,9 +49,38 @@ const ProductDetailPage = () => {
     }
   };
 
+  const getAllProducts = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:8000/api/v1/product/getAllProduct",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        setAllProducts(res.data.products);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     productDetails();
+    getAllProducts();
   }, [id]);
+
+  const relatedProducts = useMemo(() => {
+    if (!product || !allProducts.length === 0) return [];
+
+    return allProducts
+      .filter((p) => p.category === product.category && p._id !== product._id)
+      .slice(0, 2);
+  }, [product, allProducts]);
 
   if (!product) {
     return (
@@ -58,27 +89,6 @@ const ProductDetailPage = () => {
       </div>
     );
   }
-
-  const relatedProducts = [
-    {
-      id: 1,
-      name: "Bluetooth Speaker",
-      price: 79.99,
-      image: "https://placehold.co/200x200",
-    },
-    {
-      id: 2,
-      name: "Wireless Earbuds",
-      price: 89.99,
-      image: "https://placehold.co/200x200",
-    },
-    {
-      id: 3,
-      name: "Gaming Headset",
-      price: 149.99,
-      image: "https://placehold.co/200x200",
-    },
-  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -137,24 +147,35 @@ const ProductDetailPage = () => {
       {/* Related Products */}
       <div className="mt-16">
         <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {relatedProducts.map((product) => (
-            <div
-              key={product.id}
-              className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="bg-gray-200 h-48 flex items-center justify-center">
-                <span className="text-gray-500">Product Image</span>
+
+        {relatedProducts.length === 0 ? (
+          <p className="text-gray-500">No related products found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <div className="h-auto flex items-center justify-center pt-2">
+                  <Link to={`/product-detail/${product._id}`}>
+                    <img
+                      className="h-[150px] w-auto"
+                      src={product.image[0]?.url}
+                      alt={product.title}
+                    />
+                  </Link>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+                  <p className="text-blue-600 font-bold">
+                    ₹{product.price.toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
-                <p className="text-blue-600 font-bold">
-                  ${product.price.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Reviews Section */}

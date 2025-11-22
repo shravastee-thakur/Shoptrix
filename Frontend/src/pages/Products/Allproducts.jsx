@@ -115,7 +115,7 @@ const ProductPage = () => {
                 <h3 className="font-semibold text-gray-800 text-sm mb-1">
                   {product.title}
                 </h3>
-                <p className="font-bold">₹{product.price.toLocaleString()}</p>
+                <p className="text-blue-600 font-bold">₹{product.price.toLocaleString()}</p>
                 <button className="mt-2 w-full bg-[#D34E4E] hover:bg-[#cf3f3f] text-white py-1.5 rounded text-sm transition-colors">
                   Add to Cart
                 </button>
