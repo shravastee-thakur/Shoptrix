@@ -8,11 +8,12 @@ import { updateCartFromAPI, addToCartState } from "../../redux/CartSlice";
 
 const Cart = () => {
   const dispatch = useDispatch();
-  const accessToken = useSelector((state) => state.user.accessToken);
+  const { isVerified, accessToken } = useSelector((state) => state.user);
   const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubTotal] = useState(0);
 
   const getCartItems = async () => {
+    if (!isVerified) return;
     try {
       const res = await axios.get("http://localhost:8000/api/v1/cart/getCart", {
         headers: {
@@ -44,16 +45,26 @@ const Cart = () => {
   }, [accessToken]);
 
   // Update quantity
-  const updateQuantity = (id, newQty) => {
+  const updateQuantity = async (productId, newQty) => {
     if (newQty < 1) return;
-    setCartItems(
-      cartItems.map((item) =>
-        item.productId._id === id ? { ...item, quantity: newQty } : item
-      )
-    );
-
-    setCartItems(updatedItems);
-    dispatch(addToCartState(updatedItems));
+    try {
+      const res = await axios.put(
+        "http://localhost:8000/api/v1/cart/updateCart",
+        { productId, quantity: newQty },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (res.data.success) {
+        getCartItems();
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // Remove item
@@ -127,7 +138,10 @@ const Cart = () => {
                       <div className="flex items-center mt-4">
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
+                            updateQuantity(
+                              item.productId._id,
+                              item.quantity - 1
+                            )
                           }
                           className="bg-gray-200 px-3 py-1 rounded-l hover:bg-gray-300"
                         >
@@ -138,7 +152,10 @@ const Cart = () => {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
+                            updateQuantity(
+                              item.productId._id,
+                              item.quantity + 1
+                            )
                           }
                           className="bg-gray-200 px-3 py-1 rounded-r hover:bg-gray-300"
                         >

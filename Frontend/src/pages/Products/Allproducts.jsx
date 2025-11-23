@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCartState } from "../../redux/CartSlice";
+import toast from "react-hot-toast";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
@@ -67,8 +68,15 @@ const ProductPage = () => {
   }, []);
 
   const handleAddToCart = async (product) => {
-    dispatch(addToCartState({ productId: product._id, quantity: 1 }));
-
+    if (!accessToken) {
+      return toast.error("Please login to add items to cart", {
+        style: {
+          borderRadius: "10px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
+    }
     try {
       const res = await axios.post(
         "http://localhost:8000/api/v1/cart/addToCart",
@@ -82,7 +90,9 @@ const ProductPage = () => {
         }
       );
 
-      console.log("Added to cart:", product.title);
+      if (res.data.success) {
+        dispatch(addToCartState({ productId: product._id, quantity: 1 }));
+      }
     } catch (error) {
       console.log(error);
     }

@@ -17,18 +17,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
-    phoneNumber: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    pinCode: {
-      type: String,
-    },
     role: {
       type: String,
       enum: ["admin", "user"],

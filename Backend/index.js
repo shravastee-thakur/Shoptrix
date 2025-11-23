@@ -11,6 +11,7 @@ import userRoutes from "./routes/UserRoute.js";
 import productAdminRoutes from "./routes/adminRoute/ProductRoute.js";
 import productRoutes from "./routes/CommonRoute.js";
 import cartRoutes from "./routes/CartRoute.js";
+import addressRoutes from "./routes/AddressRoute.js";
 
 const app = express();
 connectDb();
@@ -38,6 +39,8 @@ app.use(
 //user
 app.use("/api/v1/user", userRoutes);
 // http://localhost:8000/api/v1/user/register
+app.use("/api/v1/user/address", addressRoutes);
+// http://localhost:8000/api/v1/user/address/createAddress
 
 // product
 app.use("/api/v1/admin/product", productAdminRoutes);
