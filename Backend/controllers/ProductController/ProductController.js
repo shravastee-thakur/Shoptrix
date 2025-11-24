@@ -58,7 +58,7 @@ export const searchProducts = async (req, res, next) => {
     const regexConditions = keywords.map((word) => ({
       $or: [
         { title: { $regex: word, $options: "i" } },
-        { description: { $regex: word, $options: "i" } },
+        // { description: { $regex: word, $options: "i" } },
         { brand: { $regex: word, $options: "i" } },
         { category: { $regex: word, $options: "i" } },
       ],

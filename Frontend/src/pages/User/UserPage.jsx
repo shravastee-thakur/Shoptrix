@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -6,6 +6,7 @@ const AddressPage = () => {
   const { userId, accessToken } = useSelector((state) => state.user);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addresses, setAddresses] = useState([]);
+  const [editingAddress, setEditingAddress] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -19,16 +20,87 @@ const AddressPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log(formData);
+  };
+
+  const handleUpdate = async (address) => {
+    setEditingAddress(address._id);
+    setShowAddForm(true);
+    setFormData({
+      fullName: address.fullName || "",
+      phoneNumber: address.phoneNumber || "",
+      address: address.address || "",
+      city: address.city || "",
+      state: address.state || "",
+      pinCode: address.pinCode || "",
+    });
   };
 
   const handleSubmitAddress = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/v1/user/address/createAddress",
-        formData,
+      if (editingAddress) {
+        const res = await axios.put(
+          `http://localhost:8000/api/v1/user/address/updateAddress/${editingAddress}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+        console.log(res.data);
+
+        if (res.data.success) {
+          await getAddress();
+          setEditingAddress(null);
+          setShowAddForm(false);
+          setFormData({
+            fullName: "",
+            phoneNumber: "",
+            address: "",
+            city: "",
+            state: "",
+            pinCode: "",
+          });
+        }
+      } else {
+        const res = await axios.post(
+          "http://localhost:8000/api/v1/user/address/createAddress",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+
+        if (res.data.success) {
+          setFormData({
+            fullName: "",
+            phoneNumber: "",
+            address: "",
+            city: "",
+            state: "",
+            pinCode: "",
+          });
+          await getAddress();
+          setShowAddForm(false);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getAddress = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:8000/api/v1/user/address/getAddress",
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -37,23 +109,19 @@ const AddressPage = () => {
           withCredentials: true,
         }
       );
-      console.log(res.data);
       if (res.data.success) {
-        setAddresses([...addresses, res.data.address]);
-        setFormData({
-          fullName: "",
-          phoneNumber: "",
-          address: "",
-          city: "",
-          state: "",
-          pinCode: "",
-        });
-        setShowAddForm(false);
+        setAddresses(res.data.addresses);
       }
     } catch (error) {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    if (accessToken) {
+      getAddress();
+    }
+  }, [accessToken]);
 
   const handleRemoveAddress = async (id) => {
     try {
@@ -248,7 +316,10 @@ const AddressPage = () => {
                       >
                         {address.isDefault ? "Default" : "Set as Default"}
                       </button>
-                      <button className="text-blue-600 hover:text-blue-800">
+                      <button
+                        onClick={() => handleUpdate(address)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
                         Edit
                       </button>
                       <button

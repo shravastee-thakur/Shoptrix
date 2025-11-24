@@ -78,10 +78,11 @@ export const updateAddress = async (req, res, next) => {
       await Address.updateMany({ userId }, { isDefault: false });
     }
 
-    const updatedAddress = await Address.findOneAndUpdate({
-      _id: addressId,
-      userId,
-    });
+    const updatedAddress = await Address.findOneAndUpdate(
+      { _id: addressId, userId },
+      updateData,
+      { new: true, runValidators: true }
+    );
 
     if (!updatedAddress) {
       return res.status(404).json({

@@ -22,6 +22,8 @@ const Cart = () => {
         },
         withCredentials: true,
       });
+      console.log(res.data);
+
       if (res.data.success) {
         setCartItems(res.data.cart.items);
         setSubTotal(res.data.totalPrice);
@@ -59,6 +61,8 @@ const Cart = () => {
           withCredentials: true,
         }
       );
+      console.log(res.data);
+
       if (res.data.success) {
         getCartItems();
       }
@@ -135,6 +139,31 @@ const Cart = () => {
                       <p className="text-gray-600 mt-1">
                         ₹{item.productId.price.toLocaleString()}
                       </p>
+                      {/* Stock Message */}
+                      {(() => {
+                        const totalStock = item.productId.totalStock;
+                        const quantity = item.quantity;
+                        const remaining = totalStock - quantity;
+
+                        if (remaining === 0) {
+                          return (
+                            <p className="text-red-600 font-semibold mt-1">
+                              Out of stock
+                            </p>
+                          );
+                        }
+
+                        if (remaining > 0 && remaining < 3) {
+                          return (
+                            <p className="text-orange-600 font-medium mt-1">
+                              Only {remaining} left!
+                            </p>
+                          );
+                        }
+
+                        return null;
+                      })()}
+
                       <div className="flex items-center mt-4">
                         <button
                           onClick={() =>
@@ -157,7 +186,12 @@ const Cart = () => {
                               item.quantity + 1
                             )
                           }
-                          className="bg-gray-200 px-3 py-1 rounded-r hover:bg-gray-300"
+                          disabled={item.quantity >= item.productId.totalStock}
+                          className={`px-3 py-1 rounded-r ${
+                            item.quantity >= item.productId.totalStock
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-gray-200 hover:bg-gray-300"
+                          }`}
                         >
                           +
                         </button>

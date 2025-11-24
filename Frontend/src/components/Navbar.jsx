@@ -23,6 +23,7 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     navigate(`/search?q=${searchQuery}`);
+    setSearchQuery("");
   };
 
   const handleLogout = async () => {
@@ -100,12 +101,12 @@ const Navbar = () => {
 
               {isVerified ? (
                 <div className="flex gap-6">
-                  <p className="text-yellow-300 transition font-semibold">
-                    Welcome,
-                    <Link to={"/profile"}>
+                  <Link to={"/user-page"}>
+                    <p className="text-yellow-300 transition font-semibold">
+                      Welcome,
                       <span className="font-bold"> {name}</span>
-                    </Link>
-                  </p>
+                    </p>
+                  </Link>
                   {role === "admin" && (
                     <p className="hover:text-yellow-200 transition font-semibold">
                       <Link to="/admin">Admin</Link>
@@ -200,8 +201,11 @@ const Navbar = () => {
             </div>
           </form>
           {isVerified && (
-            <p className="block px-3 py-2 rounded-md font-bold text-yellow-300">
-              Welcome, {name}
+            <p
+              onClick={() => setIsOpen(!isOpen)}
+              className="block px-3 py-2 rounded-md font-bold text-yellow-300"
+            >
+              <Link to={"/user-page"}> Welcome, {name}</Link>
             </p>
           )}
 

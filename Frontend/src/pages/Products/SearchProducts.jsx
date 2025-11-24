@@ -61,18 +61,17 @@ const SearchProducts = () => {
     //               Add to Cart
     //             </button>
     //         </div>
-            
-            
+
     //       ))}
     //     </div>
     //   )}
     // </div>
     <div className="min-h-screen pt-4 pb-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
-          Searched Products
-        </h1>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+        <h2 className="text-xl font-semibold mb-4">
+          Search results for: <span className="text-purple-600">{query}</span>
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
           {products.map((product) => (
             <div
               key={product._id}
@@ -106,8 +105,8 @@ const SearchProducts = () => {
             </div>
           ))}
         </div>
-        </div>
-        </div>
+      </div>
+    </div>
   );
 };
 
