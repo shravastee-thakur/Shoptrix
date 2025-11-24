@@ -22,9 +22,7 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchQuery);
-    // Add your actual search logic here
-    // e.g., router.push(`/search?q=${searchQuery}`) or API call
+    navigate(`/search?q=${searchQuery}`);
   };
 
   const handleLogout = async () => {
@@ -71,7 +69,10 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Search Bar + Button */}
-          <form className="hidden md:flex md:mx-6 lg:mx-8">
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex md:mx-6 lg:mx-8"
+          >
             <div className="relative flex">
               <input
                 type="text"
@@ -82,7 +83,7 @@ const Navbar = () => {
               />
               <button
                 type="submit"
-                className="bg-gray-800 hover:bg-gray-900 text-white px-4 rounded-r-lg flex items-center justify-center transition h-full"
+                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-r-lg flex items-center justify-center transition h-full"
                 aria-label="Search"
               >
                 <SearchSharpIcon />

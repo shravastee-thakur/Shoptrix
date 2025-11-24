@@ -10,8 +10,8 @@ import {
 
 const router = express.Router();
 
-router.get("/createAddress", authenticate, createAdderss);
-router.post("/getAddress", authenticate, getAddress);
+router.post("/createAddress", authenticate, createAdderss);
+router.get("/getAddress", authenticate, getAddress);
 router.put("/updateAddress/:id", authenticate, updateAddress);
 router.delete("/deleteAddress/:id", authenticate, deleteAddress);
 

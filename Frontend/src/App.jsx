@@ -17,6 +17,8 @@ import { setAccessToken, setRole, logout } from "./redux/UserSlice";
 import ProductPage from "./pages/Products/Allproducts";
 import ProductDetailPage from "./pages/Products/ProductDetails";
 import Cart from "./pages/Products/Cart";
+import UserPage from "./pages/User/UserPage";
+import SearchProducts from "./pages/Products/SearchProducts";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -61,7 +63,7 @@ const App = () => {
     );
   }
   return (
-    <div className="bg-gray-100 ">
+    <div className="bg-gray-100">
       <div>
         <Toaster position="top-right" reverseOrder={false} />
       </div>
@@ -80,6 +82,8 @@ const App = () => {
           <Route path="/all-products" element={<ProductPage />} />
           <Route path="/product-detail/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/user-page" element={<UserPage />} />
+          <Route path="/search" element={<SearchProducts />} />
         </Routes>
       </BrowserRouter>
     </div>
