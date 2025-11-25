@@ -17,8 +17,10 @@ import { setAccessToken, setRole, logout } from "./redux/UserSlice";
 import ProductPage from "./pages/Products/Allproducts";
 import ProductDetailPage from "./pages/Products/ProductDetails";
 import Cart from "./pages/Products/Cart";
-import UserPage from "./pages/User/UserPage";
 import SearchProducts from "./pages/Products/SearchProducts";
+import AddressPage from "./pages/User/UserProfile/AddressPage";
+import UserDetail from "./pages/User/UserProfile/UserDetails";
+import MyOrders from "./pages/User/UserProfile/MyOrders";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -82,8 +84,10 @@ const App = () => {
           <Route path="/all-products" element={<ProductPage />} />
           <Route path="/product-detail/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/user-page" element={<UserPage />} />
+          <Route path="/address-page" element={<AddressPage />} />
           <Route path="/search" element={<SearchProducts />} />
+          <Route path="/user-details" element={<UserDetail />} />
+          <Route path="/user-orders" element={<MyOrders />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 
 const AddressPage = () => {
-  const { userId, accessToken } = useSelector((state) => state.user);
+  const { accessToken } = useSelector((state) => state.user);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [editingAddress, setEditingAddress] = useState(null);
@@ -147,7 +147,7 @@ const AddressPage = () => {
     setAddresses(
       addresses.map((addr) => ({
         ...addr,
-        isDefault: addr.id === id,
+        isDefault: addr._id === id,
       }))
     );
   };

@@ -13,6 +13,11 @@ export const getCart = async (req, res, next) => {
 
     if (!cart) {
       cart = await Cart.create({ userId, items: [] });
+
+      cart = await Cart.findById(cart._id).populate(
+        "items.productId",
+        "title price image totalStock"
+      );
     }
 
     const totalPrice = cart.items.reduce((total, item) => {
@@ -63,33 +68,40 @@ export const addToCart = async (req, res, next) => {
 
       cart = await Cart.create({ userId, items: [{ productId, quantity }] });
       return res.status(201).json({ success: true, cart });
+    } else {
+      const existingItem = cart.items.find(
+        (item) => item.productId.toString() === productId
+      );
+
+      const newTotalQuantity = existingItem
+        ? existingItem.quantity + quantity
+        : quantity;
+
+      if (newTotalQuantity > availableStock) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${availableStock} items available`,
+          availableStock,
+        });
+      }
+
+      // Update or Add item
+      if (existingItem) {
+        existingItem.quantity = newTotalQuantity;
+      } else {
+        cart.items.push({ productId, quantity });
+      }
+
+      await cart.save();
     }
 
-    const existingItem = cart.items.find(
-      (item) => item.productId.toString() === productId
+    // Always populate before sending response
+    const populatedCart = await Cart.findById(cart._id).populate(
+      "items.productId",
+      "title price image totalStock"
     );
 
-    const newTotalQuantity = existingItem
-      ? existingItem.quantity + quantity
-      : quantity;
-
-    if (newTotalQuantity > availableStock) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${availableStock} items available`,
-        availableStock,
-      });
-    }
-
-    // Update or Add item
-    if (existingItem) {
-      existingItem.quantity = newTotalQuantity;
-    } else {
-      cart.items.push({ productId, quantity });
-    }
-
-    await cart.save();
-    return res.status(200).json({ success: true, data: cart });
+    return res.status(200).json({ success: true, cart: populatedCart });
   } catch (error) {
     next(error);
     logger.error(`Error in create cart ${error.message}`);
@@ -133,7 +145,13 @@ export const updateCart = async (req, res, next) => {
     item.quantity = quantity;
     await cart.save();
 
-    return res.status(200).json({ success: true, cart });
+    // Populate before response
+    const populatedCart = await Cart.findById(cart._id).populate(
+      "items.productId",
+      "title price image totalStock"
+    );
+
+    return res.status(200).json({ success: true, cart: populatedCart });
   } catch (error) {
     next(error);
     logger.error(`Error in update cart ${error.message}`);

@@ -12,6 +12,7 @@ import productAdminRoutes from "./routes/adminRoute/ProductRoute.js";
 import productRoutes from "./routes/CommonRoute.js";
 import cartRoutes from "./routes/CartRoute.js";
 import addressRoutes from "./routes/AddressRoute.js";
+import orderRoutes from "./routes/OrderRoute.js";
 
 const app = express();
 connectDb();
@@ -42,15 +43,23 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/user/address", addressRoutes);
 // http://localhost:8000/api/v1/user/address/createAddress
 
+
 // product
 app.use("/api/v1/admin/product", productAdminRoutes);
 // http://localhost:8000/api/v1/admin/product/createProduct
 app.use("/api/v1/product", productRoutes);
 // http://localhost:8000/api/v1/product/getAllProduct
 
+
+
 // cart
 app.use("/api/v1/cart", cartRoutes);
 // http://localhost:8000/api/v1/cart/getCart
+
+
+// order
+app.use("/api/v1/order", orderRoutes);
+// http://localhost:8000/api/v1/order/createOrder
 
 app.use(errorHandler);
 

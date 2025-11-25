@@ -101,7 +101,7 @@ const Navbar = () => {
 
               {isVerified ? (
                 <div className="flex gap-6">
-                  <Link to={"/user-page"}>
+                  <Link to={"/user-details"}>
                     <p className="text-yellow-300 transition font-semibold">
                       Welcome,
                       <span className="font-bold"> {name}</span>
@@ -205,7 +205,7 @@ const Navbar = () => {
               onClick={() => setIsOpen(!isOpen)}
               className="block px-3 py-2 rounded-md font-bold text-yellow-300"
             >
-              <Link to={"/user-page"}> Welcome, {name}</Link>
+              <Link to={"/user-details"}> Welcome, {name}</Link>
             </p>
           )}
 
