@@ -57,7 +57,8 @@ export const getOrder = async (req, res, next) => {
 
     const orders = await Order.find({ userId })
       .sort({ createdAt: -1 })
-      .select("_id createdAt orderStatus totalAmount");
+      .select("_id createdAt orderStatus totalAmount cartItems")
+      .populate("cartItems.productId", "title image price");
 
     return res.status(200).json({
       success: true,
