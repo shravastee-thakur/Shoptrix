@@ -11,6 +11,8 @@ const Cart = () => {
   const { isVerified, accessToken } = useSelector((state) => state.user);
   const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubTotal] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [orderId, setOrderId] = useState("");
 
   const getCartItems = async () => {
     if (!isVerified) return;
@@ -86,6 +88,29 @@ const Cart = () => {
       );
       if (res.data.success) {
         await getCartItems();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleGenerateOrder = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/order/createOrder",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        setOrderId(res.data.order._id);
+        setShowModal(true);
       }
     } catch (error) {
       console.log(error);
@@ -217,6 +242,35 @@ const Cart = () => {
               </div>
             </div>
 
+            {/* order modal */}
+
+            {showModal && (
+              <div className=" w-[400px] h-[200px] bg-yellow-50 rounded-xl flex flex-col justify-center items-center gap-4 z-30 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div>
+                  <h2 className="text-xl text-center font-bold">
+                    Your order No. <br /> {orderId}
+                  </h2>
+                  <p className="mt-2 text-center">
+                    You can pay with card or UPI
+                  </p>
+                  <p className="text-center">Thank you for shopping with us.</p>
+                </div>
+                <div>
+                  <div>
+                    <button
+                      onClick={async () => {
+                        setShowModal(false);
+                        await getCartItems();
+                      }}
+                      className="bg-blue-700 text-white px-6 py-1 rounded"
+                    >
+                      Ok
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Order Summary */}
             <div className="w-full lg:w-96">
               <div className="bg-white p-6 rounded-lg shadow sticky top-8">
@@ -242,7 +296,10 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <button className="w-full mt-6 bg-[#D34E4E] hover:bg-[#cf3f3f] text-white py-3 rounded-md transition">
+                <button
+                  onClick={handleGenerateOrder}
+                  className="w-full mt-6 bg-[#D34E4E] hover:bg-[#cf3f3f] text-white py-3 rounded-md transition"
+                >
                   Place Order
                 </button>
                 <button className="w-full mt-3 text-white py-3 rounded-md bg-[#de953c] hover:bg-[#cb8126] transition">

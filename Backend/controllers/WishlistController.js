@@ -10,14 +10,18 @@ export const addToWishlist = async (req, res, next) => {
     if (!wishlist) {
       wishlist = await Wishlist.create({ userId, products: [productId] });
     } else {
-      if (wishlist.products.includes(productId)) {
+      const exists = wishlist.products.some(
+        (id) => id.toString() === productId
+      );
+
+      if (exists) {
         return res.json({ success: true, message: "Already in wishlist" });
       }
       wishlist.products.push(productId);
       await wishlist.save();
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: "Added to wishlist",
       wishlist,

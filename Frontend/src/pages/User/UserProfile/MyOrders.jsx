@@ -53,8 +53,9 @@ const MyOrders = () => {
                   {item.productId.title}
                 </h3>
 
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 mt-1 flex gap-9">
                   ₹{item.productId.price.toLocaleString()}
+                  <h3>Quantity: {item.quantity}</h3>
                 </p>
 
                 <p className="mt-2">

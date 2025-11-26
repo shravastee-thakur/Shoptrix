@@ -21,10 +21,10 @@ import SearchProducts from "./pages/Products/SearchProducts";
 import AddressPage from "./pages/User/UserProfile/AddressPage";
 import UserDetail from "./pages/User/UserProfile/UserDetails";
 import MyOrders from "./pages/User/UserProfile/MyOrders";
+import WishlistPage from "./pages/User/Wishlist";
 
 const App = () => {
   const dispatch = useDispatch();
-  const accessToken = useSelector((state) => state.user.accessToken);
   const [isTokenRefreshed, setIsTokenRefreshed] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,6 @@ const App = () => {
       }
     };
 
-    // ALWAYS try to refresh token on app load, regardless of existing accessToken
     getRefreshToken();
   }, [dispatch]);
 
@@ -88,6 +87,7 @@ const App = () => {
           <Route path="/search" element={<SearchProducts />} />
           <Route path="/user-details" element={<UserDetail />} />
           <Route path="/user-orders" element={<MyOrders />} />
+          <Route path="/user-wishlist" element={<WishlistPage />} />
         </Routes>
       </BrowserRouter>
     </div>

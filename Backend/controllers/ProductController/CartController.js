@@ -88,6 +88,7 @@ export const addToCart = async (req, res, next) => {
       // Update or Add item
       if (existingItem) {
         existingItem.quantity = newTotalQuantity;
+        cart.markModified("items");
       } else {
         cart.items.push({ productId, quantity });
       }
