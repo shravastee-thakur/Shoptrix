@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import AddressPage from "./AddressPage"; //
 import MyOrders from "./MyOrders";
-import WishlistPage from "../Wishlist";
+import WishlistPage from "./Wishlist";
 
 const UserDetail = () => {
   const [activeTab, setActiveTab] = useState("addresses");

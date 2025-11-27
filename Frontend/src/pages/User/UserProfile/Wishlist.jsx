@@ -1,8 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCartState } from "../../../redux/CartSlice";
+import toast from "react-hot-toast";
 
 const WishlistPage = () => {
+  const dispatch = useDispatch();
   const accessToken = useSelector((state) => state.user.accessToken);
   const [wishlistItems, setWishlistItems] = useState([]);
 
@@ -50,6 +53,12 @@ const WishlistPage = () => {
         }
       );
       console.log(res.data);
+      if (res.data.success) {
+        dispatch(addToCartState(res.data.cart));
+
+        toast.success("Added to cart");
+        setWishlistItems((prev) => prev.filter((item) => item._id !== id));
+      }
     } catch (error) {
       console.log(error);
     }
@@ -61,8 +70,26 @@ const WishlistPage = () => {
     }
   }, [accessToken]);
 
-  const handleRemoveFromWishlist = (id) => {
-    setWishlistItems(wishlistItems.filter((item) => item._id !== id));
+  const handleRemoveFromWishlist = async (id) => {
+    try {
+      const res = await axios.delete(
+        `http://localhost:8000/api/v1/user/wishlist/removeFromWishlist/${id}`,
+
+        {
+          data: { productId: id },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (res.data.success) {
+        setWishlistItems(wishlistItems.filter((item) => item._id !== id));
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

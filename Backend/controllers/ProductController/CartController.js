@@ -1,6 +1,7 @@
 import Cart from "../../models/CartModel.js";
 import Product from "../../models/ProductModel.js";
 import logger from "../../utils/logger.js";
+import Wishlist from "../../models/WishlistModel.js";
 
 export const getCart = async (req, res, next) => {
   try {
@@ -95,6 +96,8 @@ export const addToCart = async (req, res, next) => {
 
       await cart.save();
     }
+
+    await Wishlist.updateOne({ userId }, { $pull: { products: productId } });
 
     // Always populate before sending response
     const populatedCart = await Cart.findById(cart._id).populate(

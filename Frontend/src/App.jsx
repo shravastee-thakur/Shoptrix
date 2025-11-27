@@ -21,7 +21,7 @@ import SearchProducts from "./pages/Products/SearchProducts";
 import AddressPage from "./pages/User/UserProfile/AddressPage";
 import UserDetail from "./pages/User/UserProfile/UserDetails";
 import MyOrders from "./pages/User/UserProfile/MyOrders";
-import WishlistPage from "./pages/User/Wishlist";
+import WishlistPage from "./pages/User/UserProfile/Wishlist";
 
 const App = () => {
   const dispatch = useDispatch();

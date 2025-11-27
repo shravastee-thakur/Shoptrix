@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SearchSharpIcon from "@mui/icons-material/SearchSharp";
 import { useDispatch, useSelector } from "react-redux";
