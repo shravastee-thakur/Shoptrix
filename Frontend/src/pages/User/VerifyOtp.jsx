@@ -8,6 +8,7 @@ import {
   setName,
   setRole,
 } from "../../redux/UserSlice";
+import { syncCart } from "../../helper/syncCart";
 
 const VerifyOtp = () => {
   const navigate = useNavigate();
@@ -44,6 +45,8 @@ const VerifyOtp = () => {
         dispatch(setIsVerified(res.data.user.isVerified));
         dispatch(setName(res.data.user.name));
         dispatch(setRole(res.data.user.role));
+
+        await syncCart(res.data.accessToken, dispatch);
       }
     } catch (error) {
       console.log(error);

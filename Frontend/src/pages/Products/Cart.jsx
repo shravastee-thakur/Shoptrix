@@ -4,18 +4,19 @@ import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { updateCartFromAPI, addToCartState } from "../../redux/CartSlice";
+import { updateCartFromAPI } from "../../redux/CartSlice";
+// import { syncCart } from "../../helper/syncCart";
 
 const Cart = () => {
   const dispatch = useDispatch();
-  const { isVerified, accessToken } = useSelector((state) => state.user);
+
+  const { accessToken } = useSelector((state) => state.user);
   const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubTotal] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [orderId, setOrderId] = useState("");
 
   const getCartItems = async () => {
-    if (!isVerified) return;
     try {
       const res = await axios.get("http://localhost:8000/api/v1/cart/getCart", {
         headers: {
@@ -66,7 +67,7 @@ const Cart = () => {
       console.log(res.data);
 
       if (res.data.success) {
-        getCartItems();
+        await getCartItems();
       }
     } catch (error) {
       console.log(error);

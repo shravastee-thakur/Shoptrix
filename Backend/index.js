@@ -14,6 +14,7 @@ import cartRoutes from "./routes/CartRoute.js";
 import addressRoutes from "./routes/AddressRoute.js";
 import orderRoutes from "./routes/OrderRoute.js";
 import wishlistRoute from "./routes/WishlistRoute.js";
+import reviewRoute from "./routes/ReviewRoute.js";
 
 const app = express();
 connectDb();
@@ -51,6 +52,8 @@ app.use("/api/v1/admin/product", productAdminRoutes);
 // http://localhost:8000/api/v1/admin/product/createProduct
 app.use("/api/v1/product", productRoutes);
 // http://localhost:8000/api/v1/product/getAllProduct
+app.use("/api/v1/review", reviewRoute);
+// http://localhost:8000/api/v1/review/addReview
 
 // cart
 app.use("/api/v1/cart", cartRoutes);

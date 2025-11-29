@@ -22,6 +22,7 @@ import AddressPage from "./pages/User/UserProfile/AddressPage";
 import UserDetail from "./pages/User/UserProfile/UserDetails";
 import MyOrders from "./pages/User/UserProfile/MyOrders";
 import WishlistPage from "./pages/User/UserProfile/Wishlist";
+import { syncCart } from "./helper/syncCart";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -40,6 +41,8 @@ const App = () => {
         if (res.data.success) {
           dispatch(setAccessToken(res.data.accessToken));
           dispatch(setRole(res.data.user.role));
+
+          await syncCart(res.data.accessToken, dispatch);
         }
       } catch (error) {
         if (error.response?.status !== 401) {

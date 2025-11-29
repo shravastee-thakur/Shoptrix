@@ -71,7 +71,7 @@ export const addToCart = async (req, res, next) => {
       return res.status(201).json({ success: true, cart });
     } else {
       const existingItem = cart.items.find(
-        (item) => item.productId.toString() === productId
+        (item) => item.productId?.toString() === productId.toString()
       );
 
       const newTotalQuantity = existingItem
