@@ -51,6 +51,7 @@ export const createOrder = async (req, res, next) => {
   }
 };
 
+// my order
 export const getOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -59,6 +60,24 @@ export const getOrder = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .select("_id createdAt orderStatus totalAmount cartItems")
       .populate("cartItems.productId", "title image price");
+
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    next(error);
+    logger.error(`Error in get order ${error.message}`);
+  }
+};
+
+export const getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .select("_id createdAt orderStatus totalAmount cartItems")
+      .populate("cartItems.productId", "title price")
+      .populate("userId", "email");
 
     return res.status(200).json({
       success: true,

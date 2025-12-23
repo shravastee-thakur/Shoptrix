@@ -6,13 +6,7 @@ export const updateOrderStatus = async (req, res, next) => {
     const orderId = req.params.id;
     const { status } = req.body;
 
-    const allowedStatus = [
-      "pending",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-    ];
+    const allowedStatus = ["pending", "delivered", "cancelled"];
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({
         success: false,

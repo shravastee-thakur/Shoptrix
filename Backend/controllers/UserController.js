@@ -10,7 +10,6 @@ import {
   saveTempUser,
 } from "../utils/otp.js";
 import { rateLimit } from "../utils/rateLimit.js";
-import transporter from "../utils/sendMail.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -22,6 +21,7 @@ import {
   getResetToken,
   saveResetToken,
 } from "../utils/resetToken.js";
+import sendMail from "../utils/sendMail.js";
 
 export const Register = async (req, res, next) => {
   try {
@@ -51,11 +51,8 @@ export const Register = async (req, res, next) => {
     await saveTempUser(email, { name, email, password, role });
 
     const verifyLink = `${process.env.FRONTEND_URL}/verify-email?email=${email}&otp=${otp}`;
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Verify your email for account creation",
-      html: `
+
+    const htmlContent = `
         <h2>Email Verification</h2>
         <p>Hello ${name},</p>
         <p>Click the link below to verify your account:</p>
@@ -63,10 +60,13 @@ export const Register = async (req, res, next) => {
       Verify Email
         </a>
         <p>This link will expire in 5 minutes.</p>
-      `,
-    };
+      `;
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(
+      email,
+      "Verify your email for account creation",
+      htmlContent
+    );
 
     return res.status(201).json({
       success: true,
@@ -165,19 +165,14 @@ export const LoginStepOne = async (req, res, next) => {
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     await saveOtp(email, otp);
 
-    const mailOption = {
-      from: process.env.SENDER_EMAIL,
-      to: user.email,
-      subject: "Your 2FA Login OTP",
-      html: `
+    const htmlContent = `
         <p>Login Verification</p>
         <p>Your OTP for login is:</p>
         <h2><strong>${otp}</strong></h2>
         <p>This OTP will expire in 5 minutes.</p>
-      `,
-    };
+      `;
 
-    await transporter.sendMail(mailOption);
+    await sendMail(user.email, "Your 2FA Login OTP", htmlContent);
 
     return res.status(200).json({
       success: true,
@@ -226,6 +221,10 @@ export const verifyLogin = async (req, res, next) => {
 
     await deleteOtp(user.email);
 
+    if (!user.isVerified) {
+      user.isVerified = true;
+    }
+
     const newaccessToken = generateAccessToken(user);
     const newrefreshToken = generateRefreshToken(user);
 
@@ -236,7 +235,7 @@ export const verifyLogin = async (req, res, next) => {
       .status(200)
       .cookie("refreshToken", newrefreshToken, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
@@ -287,7 +286,7 @@ export const RefreshTokenHandler = async (req, res, next) => {
       .cookie("refreshToken", newrefreshToken, {
         httpOnly: true,
         sameSite: "strict",
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .json({
@@ -309,7 +308,9 @@ export const RefreshTokenHandler = async (req, res, next) => {
 export const ChangePassword = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { oldPassword, newPassword } = req.body;
+    const sanitizeBody = sanitize(req.body);
+    const { oldPassword, newPassword } = sanitizeBody;
+
     if (!oldPassword || !newPassword) {
       return res
         .status(400)
@@ -344,7 +345,8 @@ export const ChangePassword = async (req, res, next) => {
 
 export const ForgetPassword = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const sanitizeBody = sanitize(req.body);
+    const { email } = sanitizeBody;
 
     const userExists = await User.findOne({ email });
     if (!userExists) {
@@ -373,21 +375,16 @@ export const ForgetPassword = async (req, res, next) => {
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&id=${userExists.id}`;
 
-    const mailOptions = {
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Password Reset Request",
-      html: `
+    const htmlContent = `
         <h2>Password Reset</h2>
         <p>Click the link below to verify your account:</p>
         <a href="${resetLink}" style="padding:10px 15px;background:#4f46e5;color:#fff;   border-radius:4px;text-decoration:none;">
       Verify Email
         </a>
         <p>This link will expire in 5 minutes.</p>
-      `,
-    };
+      `;
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(email, "Password Reset Request", htmlContent);
 
     return res.status(201).json({
       success: true,
@@ -401,7 +398,8 @@ export const ForgetPassword = async (req, res, next) => {
 
 export const ResetPassword = async (req, res, next) => {
   try {
-    const { userId, token, newPassword } = req.body;
+    const sanitizeBody = sanitize(req.body);
+    const { userId, token, newPassword } = sanitizeBody;
     if (!userId || !token || !newPassword) {
       return res.status(400).json({
         message: "userId, token and newPassword are required.",
@@ -455,13 +453,14 @@ export const Logout = async (req, res, next) => {
 
     if (user) {
       user.refreshToken = "";
+      user.isVerified = false;
       await user.save();
     }
 
     return res
       .clearCookie("refreshToken", {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       })
       .status(200)

@@ -52,7 +52,13 @@ const Login = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error);
+      toast.error("Failed to login", {
+        style: {
+          borderRadius: "10px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
     }
   };
 

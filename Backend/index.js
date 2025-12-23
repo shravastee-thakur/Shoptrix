@@ -9,6 +9,7 @@ import { errorHandler } from "./middlewares/errorMiddleware.js";
 import logger from "./utils/logger.js";
 import userRoutes from "./routes/UserRoute.js";
 import productAdminRoutes from "./routes/adminRoute/ProductRoute.js";
+import orderAdminRoutes from "./routes/adminRoute/AllOrders.js";
 import productRoutes from "./routes/CommonRoute.js";
 import cartRoutes from "./routes/CartRoute.js";
 import addressRoutes from "./routes/AddressRoute.js";
@@ -62,6 +63,8 @@ app.use("/api/v1/cart", cartRoutes);
 // order
 app.use("/api/v1/order", orderRoutes);
 // http://localhost:8000/api/v1/order/createOrder
+app.use("/api/v1/admin/order", orderAdminRoutes);
+// http://localhost:8000/api/v1/admin/order/getAllOrders
 
 app.use(errorHandler);
 

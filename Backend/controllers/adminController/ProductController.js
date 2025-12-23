@@ -2,9 +2,11 @@ import Product from "../../models/ProductModel.js";
 import logger from "../../utils/logger.js";
 import { imageUploadUtil } from "../../config/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
+import sanitize from "mongo-sanitize";
 
 export const createProduct = async (req, res, next) => {
   try {
+    const sanitizeBody = sanitize(req.body);
     const {
       title,
       description,
@@ -13,7 +15,7 @@ export const createProduct = async (req, res, next) => {
       price,
       totalStock,
       averageReview,
-    } = req.body;
+    } = sanitizeBody;
 
     if (
       !(
@@ -41,12 +43,10 @@ export const createProduct = async (req, res, next) => {
     const uploadedImg = await imageUploadUtil(req.file.buffer);
 
     const product = await Product.create({
-      image: [
-        {
-          url: uploadedImg.secure_url,
-          public_id: uploadedImg.public_id,
-        },
-      ],
+      image: {
+        url: uploadedImg.secure_url,
+        public_id: uploadedImg.public_id,
+      },
       title,
       description,
       category,
@@ -78,13 +78,11 @@ export const updateProduct = async (req, res, next) => {
     }
 
     let updatedImage = product.image;
-    // If new file uploaded
-    if (req.file) {
-      // delete old image first
-      if (product.image && product.image[0]?.public_id) {
-        await cloudinary.uploader.destroy(product.image[0].public_id);
-      }
 
+    if (req.file) {
+      if (product.image && product.image.public_id) {
+        await cloudinary.uploader.destroy(product.image.public_id);
+      }
       const uploadedImg = await imageUploadUtil(req.file.buffer);
       updatedImage = [
         {
@@ -94,7 +92,6 @@ export const updateProduct = async (req, res, next) => {
       ];
     }
 
-    // update product fields
     const updateProduct = await Product.findByIdAndUpdate(
       productId,
       {

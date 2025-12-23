@@ -1,66 +1,105 @@
-import { styled } from "@mui/material/styles";
+import axios from "axios";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
+import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const AllOrders = () => {
+  const [allOrders, setAllOrders] = useState([]);
+  const { accessToken } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (!accessToken) {
+      console.log("No access token yet, skipping fetch");
+      return;
+    }
+    const getAllOrders = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:8000/api/v1/admin/order/getAllOrders",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            withCredentials: true,
+          }
+        );
+        console.log(res.data);
+
+        if (res.data.success) {
+          setAllOrders(res.data.orders);
+        }
+      } catch (error) {
+        console.error("Failed to fetch all orders", error);
+      }
+    };
+
+    getAllOrders();
+  }, [accessToken]);
+
   return (
-    <div className="min-h-screen flex justify-center mt-10 px-2 py-4">
-      <div className="w-full max-w-full md:max-w-[85%] lg:max-w-[70%] overflow-x-auto">
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="customized table">
-            <TableHead>
-              <TableRow>
-                <StyledTableCell>Order Id</StyledTableCell>
-                <StyledTableCell>Order Date</StyledTableCell>
-                <StyledTableCell>Order Status</StyledTableCell>
-                <StyledTableCell>Order Price</StyledTableCell>
-                <StyledTableCell></StyledTableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row) => (
-                <StyledTableRow key={row.name}>
-                  <StyledTableCell component="th" scope="row">
-                    {row.name}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    {row.calories}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">{row.fat}</StyledTableCell>
-                  <StyledTableCell align="right">{row.carbs}</StyledTableCell>
-                  <StyledTableCell align="right">{row.protein}</StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+    <>
+      <div className="admin-container flex flex-col items-center justify-center px-2 py-4 mt-10">
+        <div className=" w-full max-w-full md:max-w-[85%] lg:max-w-[90%] overflow-x-auto">
+          <h2 className="text-xl md:text-2xl font-bold text-center mb-4">
+            All Orders
+          </h2>
+
+          <TableContainer
+            component={Paper}
+            sx={{
+              overflowX: "auto",
+              maxWidth: "100%",
+              "&::-webkit-scrollbar": {
+                height: "8px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#ccc",
+                borderRadius: "4px",
+              },
+            }}
+          >
+            <Table sx={{ minWidth: "900px" }} aria-label="simple table">
+              <TableHead>
+                <TableRow className="bg-[#E7F0DC] ">
+                  <TableCell align="center">Email</TableCell>
+                  <TableCell align="center">Product</TableCell>
+                  <TableCell align="center">Quantity</TableCell>
+                  <TableCell align="center">Total Price</TableCell>
+                  <TableCell align="center">Order Date</TableCell>
+                  <TableCell align="center">Order Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {allOrders.flatMap((order) =>
+                  order.cartItems.map((item) => (
+                    <TableRow key={`${order._id}-${item._id}`}>
+                      <TableCell align="center">{order.userId.email}</TableCell>
+                      <TableCell align="center">
+                        {item.productId.title}
+                      </TableCell>
+                      <TableCell align="center">{item.quantity}</TableCell>
+                      <TableCell align="center">
+                        {item.totalItemPrice}
+                      </TableCell>
+                      <TableCell align="center">
+                        {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                      </TableCell>
+                      <TableCell align="center">{order.orderStatus}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

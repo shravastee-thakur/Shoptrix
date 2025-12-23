@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import AllOrders from "./AllOrders";
 
 const Admin = () => {
   const { accessToken } = useSelector((state) => state.user);
-  const [activeTab, setActiveTab] = useState("all-products");
+  const [activeTab, setActiveTab] = useState("all-orders");
   const [products, setProducts] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,6 +185,9 @@ const Admin = () => {
           ))}
         </nav>
       </div>
+
+      {/* Orders */}
+      {activeTab === "all-orders" && <AllOrders />}
 
       {/* Products */}
       {activeTab === "all-products" && (

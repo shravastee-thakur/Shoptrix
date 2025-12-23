@@ -50,6 +50,13 @@ const VerifyOtp = () => {
       }
     } catch (error) {
       console.log(error);
+      toast.error("Failed to verify otp", {
+        style: {
+          borderRadius: "10px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
     }
   };
 
