@@ -23,12 +23,19 @@ import {
 } from "../utils/resetToken.js";
 import sendMail from "../utils/sendMail.js";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export const Register = async (req, res, next) => {
   try {
     const sanitizeBody = sanitize(req.body);
     const { name, email, password, role } = sanitizeBody;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).lean();
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -36,112 +43,24 @@ export const Register = async (req, res, next) => {
       });
     }
 
-    const key = `register:${req.ip}`;
-    const isLimited = await rateLimit(key, 3, 300);
-    if (isLimited) {
-      return res.status(429).json({
-        success: false,
-        message: "Too many registration attempts. Try again later.",
-      });
-    }
-
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    await saveOtp(email, otp);
-
-    await saveTempUser(email, { name, email, password, role });
-
-    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?email=${email}&otp=${otp}`;
-
-    const htmlContent = `
-        <h2>Email Verification</h2>
-        <p>Hello ${name},</p>
-        <p>Click the link below to verify your account:</p>
-        <a href="${verifyLink}" style="padding:10px 15px;background:#4f46e5;color:#fff;   border-radius:4px;text-decoration:none;">
-      Verify Email
-        </a>
-        <p>This link will expire in 5 minutes.</p>
-      `;
-
-    await sendMail(
-      email,
-      "Verify your email for account creation",
-      htmlContent
-    );
-
-    return res.status(201).json({
-      success: true,
-      message:
-        "Verification email sent. Please check your email to complete registration.",
-    });
-  } catch (error) {
-    logger.error(`Error in register ${error.message}`);
-    next(error);
-  }
-};
-
-export const VerifyEmail = async (req, res, next) => {
-  try {
-    const sanitizeBody = sanitize(req.body);
-    const { email, otp } = sanitizeBody;
-
-    if (!email || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and OTP are required",
-      });
-    }
-
-    const storedOtp = await getOtp(email);
-
-    if (!storedOtp) {
-      return res.status(410).json({
-        success: false,
-        message: "OTP expired or not found",
-      });
-    }
-
-    if (String(storedOtp) !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-    }
-
-    const storedUser = await getTempUser(email);
-
-    if (!storedUser) {
-      return res.status(410).json({
-        success: false,
-        message: "Registration session expired. Please register again.",
-      });
-    }
-
-    const { name, password, role } = storedUser;
-
     const user = await User.create({
       name,
       email,
       password,
       role,
-      isVerified: true,
     });
-
-    await deleteOtp(email);
-    await deleteTempUser(email);
-
     return res.status(201).json({
       success: true,
       message: "User registered successfully!",
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        isVerified: user.isVerified,
       },
     });
   } catch (error) {
-    logger.error(`Error in login ${error.message}`);
+    logger.error(`Error in register ${error.message}`);
     next(error);
   }
 };
@@ -151,12 +70,10 @@ export const LoginStepOne = async (req, res, next) => {
     const sanitizeBody = sanitize(req.body);
     const { email, password } = sanitizeBody;
 
-    const key = `login:${req.ip}:${email}`;
-    const isLimited = await rateLimit(key, 3, 300);
-    if (isLimited) {
+    if (await rateLimit(`login:${req.ip}:${email}`, 3, 300)) {
       return res.status(429).json({
         success: false,
-        message: "Too many login attempts. Try again later.",
+        message: "Too many attempts. Try again later.",
       });
     }
 
@@ -197,7 +114,7 @@ export const verifyLogin = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(userId).select("+isVerified");
+    const user = await User.findById(userId);
     if (!user) {
       return res
         .status(404)
@@ -205,49 +122,32 @@ export const verifyLogin = async (req, res, next) => {
     }
 
     const storedOtp = await getOtp(user.email);
-    if (!storedOtp) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired or invalid",
-      });
-    }
-
-    if (String(storedOtp) !== otp) {
-      return res.status(401).json({
-        success: false,
-        message: "Incorrect OTP",
-      });
+    if (!storedOtp || String(storedOtp) !== otp) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid/Expired OTP" });
     }
 
     await deleteOtp(user.email);
-
-    if (!user.isVerified) {
-      user.isVerified = true;
-    }
 
     const newaccessToken = generateAccessToken(user);
     const newrefreshToken = generateRefreshToken(user);
 
     user.refreshToken = newrefreshToken;
+    user.isVerified = true;
     await user.save();
 
-    return res
+    res
       .status(200)
-      .cookie("refreshToken", newrefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
+      .cookie("refreshToken", newrefreshToken, cookieOptions)
       .json({
         success: true,
-        accessToken: newaccessToken,
+        newaccessToken,
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-          isVerified: user.isVerified,
         },
       });
   } catch (error) {
@@ -258,21 +158,15 @@ export const verifyLogin = async (req, res, next) => {
 
 export const RefreshTokenHandler = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized: Invalid Token" });
-    }
+    const oldToken = req.cookies.refreshToken;
+    if (!oldToken)
+      return res.status(401).json({ success: false, message: "No token" });
 
-    const decoded = verifyRefreshToken(refreshToken);
+    const decoded = verifyRefreshToken(oldToken);
 
-    const user = await User.findOne({ _id: decoded.id, refreshToken });
-
-    if (!user) {
-      return res
-        .status(403)
-        .json({ message: "Invalid or expired refresh token" });
+    const user = await User.findOne(decoded.id);
+    if (!user || user.refreshToken !== oldToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const newAccessToken = generateAccessToken(user);
@@ -281,17 +175,12 @@ export const RefreshTokenHandler = async (req, res, next) => {
     user.refreshToken = newrefreshToken;
     await user.save();
 
-    return res
+    res
       .status(200)
-      .cookie("refreshToken", newrefreshToken, {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
+      .cookie("refreshToken", newrefreshToken, cookieOptions)
       .json({
         success: true,
-        accessToken: newAccessToken,
+        newAccessToken,
         user: {
           id: user.id,
           name: user.name,
@@ -348,7 +237,7 @@ export const ForgetPassword = async (req, res, next) => {
     const sanitizeBody = sanitize(req.body);
     const { email } = sanitizeBody;
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email }).lean();
     if (!userExists) {
       return res.status(409).json({
         success: false,
@@ -356,13 +245,10 @@ export const ForgetPassword = async (req, res, next) => {
       });
     }
 
-    const key = `forgot-pw:${req.ip}:${email}`;
-    const isLimited = await rateLimit(key, 3, 300);
-    if (isLimited) {
-      return res.status(429).json({
-        success: false,
-        message: "Too many password reset attempts. Try again later.",
-      });
+    if (await rateLimit(`forgot-pw:${req.ip}:${email}`, 3, 300)) {
+      return res
+        .status(429)
+        .json({ success: false, message: "Too many attempts" });
     }
 
     const resetToken = crypto.randomBytes(10).toString("hex");
@@ -371,9 +257,9 @@ export const ForgetPassword = async (req, res, next) => {
       .update(resetToken)
       .digest("hex");
 
-    await saveResetToken(userExists.id.toString(), hashedToken);
+    await saveResetToken(userExists._id.toString(), hashedToken);
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&id=${userExists.id}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&id=${userExists._id}`;
 
     const htmlContent = `
         <h2>Password Reset</h2>
@@ -447,24 +333,17 @@ export const ResetPassword = async (req, res, next) => {
 export const Logout = async (req, res, next) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token) return res.sendStatus(204);
-
-    const user = await User.findOne({ refreshToken: token });
-
-    if (user) {
-      user.refreshToken = "";
-      user.isVerified = false;
-      await user.save();
+    if (token) {
+      await User.findOneAndUpdate(
+        { refreshToken: token },
+        { refreshToken: "", isVerified: false }
+      );
     }
 
-    return res
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      })
+    res
+      .clearCookie("refreshToken", cookieOptions)
       .status(200)
-      .json({ success: true, message: "Logged out successfully" });
+      .json({ success: true, message: "Logged out" });
   } catch (error) {
     logger.error(`Error in logout ${error.message}`);
     next(error);

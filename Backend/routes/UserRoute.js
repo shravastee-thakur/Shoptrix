@@ -7,7 +7,6 @@ import {
   RefreshTokenHandler,
   Register,
   ResetPassword,
-  VerifyEmail,
   verifyLogin,
 } from "../controllers/UserController.js";
 import {
@@ -20,7 +19,6 @@ import { authenticate } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/register", registerValidation, Register);
-router.post("/verify-email", VerifyEmail);
 router.post("/loginStepOne", loginValidation, LoginStepOne);
 router.post("/verify-login", otpValidation, verifyLogin);
 router.post("/refresh-handler", RefreshTokenHandler);
