@@ -35,7 +35,7 @@ export const Register = async (req, res, next) => {
     const sanitizeBody = sanitize(req.body);
     const { name, email, password, role } = sanitizeBody;
 
-    const existingUser = await User.findOne({ email }).lean();
+    const existingUser = await User.exists({ email });
     if (existingUser) {
       return res.status(409).json({
         success: false,

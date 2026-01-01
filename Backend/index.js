@@ -10,7 +10,7 @@ import logger from "./utils/logger.js";
 import userRoutes from "./routes/UserRoute.js";
 import productAdminRoutes from "./routes/adminRoute/ProductRoute.js";
 import orderAdminRoutes from "./routes/adminRoute/AllOrders.js";
-import productRoutes from "./routes/CommonRoute.js";
+import productRoutes from "./routes/ProductRoute.js";
 import cartRoutes from "./routes/CartRoute.js";
 import addressRoutes from "./routes/AddressRoute.js";
 import orderRoutes from "./routes/OrderRoute.js";

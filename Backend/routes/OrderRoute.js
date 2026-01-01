@@ -3,7 +3,7 @@ import { authenticate } from "../middlewares/authMiddleware.js";
 import {
   createOrder,
   getOrder,
-} from "../controllers/ProductController/OrderController.js";
+} from "../controllers/product/OrderController.js";
 
 const router = express.Router();
 

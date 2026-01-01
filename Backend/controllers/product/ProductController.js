@@ -3,7 +3,7 @@ import logger from "../../utils/logger.js";
 
 export const getAllProduct = async (_, res, next) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().find().lean().sort({ createdAt: -1 });
     if (!products) {
       return res
         .status(400)
@@ -24,7 +24,7 @@ export const getAllProduct = async (_, res, next) => {
 export const getProductById = async (req, res, next) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).lean();
     if (!product) {
       return res
         .status(400)
@@ -44,29 +44,18 @@ export const getProductById = async (req, res, next) => {
 
 export const searchProducts = async (req, res, next) => {
   try {
-    const q = req.query.q || req.query.query;
+    const { q } = req.query;
+    if (!q)
+      return res
+        .status(400)
+        .json({ success: false, message: "Search query required" });
 
-    if (!q || q.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required",
-      });
-    }
-
-    const keywords = q.split(" ").filter((word) => word.trim() !== "");
-
-    const regexConditions = keywords.map((word) => ({
-      $or: [
-        { title: { $regex: word, $options: "i" } },
-        // { description: { $regex: word, $options: "i" } },
-        { brand: { $regex: word, $options: "i" } },
-        { category: { $regex: word, $options: "i" } },
-      ],
-    }));
-
-    const products = await Product.find({
-      $and: regexConditions,
-    });
+    const products = await Product.find(
+      { $text: { $search: q } },
+      { score: { $meta: "textScore" } }
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .lean();
 
     return res.status(200).json({
       success: true,
