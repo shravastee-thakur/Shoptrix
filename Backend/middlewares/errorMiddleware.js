@@ -1,5 +1,7 @@
+import logger from "../utils/logger.js";
+
 export const errorHandler = (err, req, res, next) => {
-  console.error("Error:", err);
+  logger.error(`${err.name}: ${err.message} \n Stack: ${err.stack}`);
 
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
@@ -13,7 +15,8 @@ export const errorHandler = (err, req, res, next) => {
   // Duplicate key error
   if (err.code === 11000) {
     statusCode = 400;
-    message = `Duplicate field value entered: ${Object.keys(err.keyValue)}`;
+    const field = Object.keys(err.keyValue);
+    message = `${field} already exists. Please use another value.`;
   }
 
   // Validation error (Mongoose validation)
@@ -28,5 +31,6 @@ export const errorHandler = (err, req, res, next) => {
     success: false,
     message,
     statusCode,
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
 };

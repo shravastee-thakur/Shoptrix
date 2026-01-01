@@ -1,4 +1,4 @@
-import { redis } from "./redis.js";
+import { redis } from "../config/redis.js";
 
 export async function saveResetToken(userId, hashedToken) {
   await redis.set(`reset:${userId}`, hashedToken, { EX: 300 });

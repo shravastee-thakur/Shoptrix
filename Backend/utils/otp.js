@@ -1,4 +1,4 @@
-import { redis } from "./redis.js";
+import { redis } from "../config/redis.js";
 
 export async function saveOtp(email, otp) {
   await redis.set(`otp:${email}`, otp, { EX: 300 });

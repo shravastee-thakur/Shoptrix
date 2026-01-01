@@ -1,4 +1,4 @@
-import { redis } from "./redis.js";
+import { redis } from "../config/redis.js";
 
 // Allow 5 requests (limit) per 60 seconds (windowSec)
 export async function rateLimit(key, limit, windowSec) {

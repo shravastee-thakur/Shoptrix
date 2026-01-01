@@ -6,20 +6,14 @@ export const addToWishlist = async (req, res, next) => {
     const { productId } = req.body;
     const userId = req.user.id;
 
-    let wishlist = await Wishlist.findOne({ userId });
-    if (!wishlist) {
-      wishlist = await Wishlist.create({ userId, products: [productId] });
-    } else {
-      const exists = wishlist.products.some(
-        (id) => id.toString() === productId
-      );
+    // { upsert: true } creates the wishlist if it doesn't exist.
+    // $addToSet adds the productId ONLY if it isn't already in the array.
 
-      if (exists) {
-        return res.json({ success: true, message: "Already in wishlist" });
-      }
-      wishlist.products.push(productId);
-      await wishlist.save();
-    }
+    const wishlist = await Wishlist.findOneAndUpdate(
+      { userId },
+      { $addToSet: { products: productId } },
+      { new: true, upsert: true }
+    ).lean();
 
     return res.status(200).json({
       success: true,
@@ -37,23 +31,16 @@ export const removeFromWishlist = async (req, res, next) => {
     const { productId } = req.body;
     const userId = req.user.id;
 
-    let wishlist = await Wishlist.findOne({ userId });
-    if (!wishlist) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Wishlist not found" });
-    }
-
-    wishlist.products = wishlist.products.filter(
-      (id) => id.toString() !== productId
-    );
-
-    await wishlist.save();
+    const wishlist = await Wishlist.findOneAndUpdate(
+      { userId },
+      { $pull: { products: productId } },
+      { new: true }
+    ).lean();
 
     res.json({
       success: true,
       message: "Removed from wishlist",
-      wishlist,
+      wishlist: wishlist || { products: [] },
     });
   } catch (error) {
     next(error);
@@ -65,7 +52,12 @@ export const getWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const wishlist = await Wishlist.findOne({ userId }).populate("products");
+    const wishlist = await Wishlist.findOne({ userId })
+      .populate({
+        path: "products",
+        select: "title price images totalStock",
+      })
+      .lean();
 
     res.json({
       success: true,

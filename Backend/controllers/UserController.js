@@ -1,14 +1,7 @@
 import sanitize from "mongo-sanitize";
 import User from "../models/UserModel.js";
 import logger from "../utils/logger.js";
-import {
-  deleteOtp,
-  deleteTempUser,
-  getOtp,
-  getTempUser,
-  saveOtp,
-  saveTempUser,
-} from "../utils/otp.js";
+import { deleteOtp, getOtp, saveOtp } from "../utils/otp.js";
 import { rateLimit } from "../utils/rateLimit.js";
 import {
   generateAccessToken,
@@ -21,7 +14,7 @@ import {
   getResetToken,
   saveResetToken,
 } from "../utils/resetToken.js";
-import sendMail from "../utils/sendMail.js";
+import sendMail from "../config/sendMail.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -133,7 +126,12 @@ export const verifyLogin = async (req, res, next) => {
     const newaccessToken = generateAccessToken(user);
     const newrefreshToken = generateRefreshToken(user);
 
-    user.refreshToken = newrefreshToken;
+    const hashedRefreshToken = crypto
+      .createHash("sha256")
+      .update(newrefreshToken)
+      .digest("hex");
+
+    user.refreshToken = hashedRefreshToken;
     user.isVerified = true;
     await user.save();
 
@@ -164,7 +162,15 @@ export const RefreshTokenHandler = async (req, res, next) => {
 
     const decoded = verifyRefreshToken(oldToken);
 
-    const user = await User.findOne(decoded.id);
+    const hashedIncomingToken = crypto
+      .createHash("sha256")
+      .update(newrefreshToken)
+      .digest("hex");
+
+    const user = await User.findOne({
+      _id: decoded.id,
+      refreshToken: hashedIncomingToken,
+    });
     if (!user || user.refreshToken !== oldToken) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
@@ -172,7 +178,12 @@ export const RefreshTokenHandler = async (req, res, next) => {
     const newAccessToken = generateAccessToken(user);
     const newrefreshToken = generateRefreshToken(user);
 
-    user.refreshToken = newrefreshToken;
+    const hashedRefreshToken = crypto
+      .createHash("sha256")
+      .update(newrefreshToken)
+      .digest("hex");
+
+    user.refreshToken = hashedRefreshToken;
     await user.save();
 
     res

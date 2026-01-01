@@ -1,44 +1,25 @@
 import Address from "../models/AddressModel.js";
 import logger from "../utils/logger.js";
+import sanitize from "mongo-sanitize";
 
 export const createAdderss = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const body = sanitize(req.body);
 
     // Count existing address
     const addressCount = await Address.countDocuments({ userId });
     if (addressCount >= 2) {
       return res.status(400).json({
         success: false,
-        message: "You can only add up to 2 addresses",
+        message: "Max 2 addresses allowed",
       });
     }
 
-    const { fullName, phoneNumber, address, city, state, pinCode, isDefault } =
-      req.body;
+    // If it's the first address, force it to be default
+    if (addressCount === 0) body.isDefault = true;
 
-    let finalDefault = false;
-
-    if (addressCount === 0) {
-      finalDefault = true;
-    } else if (isDefault) {
-      await Address.updateMany(
-        { userId, isDefault: true },
-        { isDefault: false }
-      );
-      finalDefault = true;
-    }
-
-    const newAddress = await Address.create({
-      userId,
-      fullName,
-      phoneNumber,
-      address,
-      city,
-      state,
-      pinCode,
-      isDefault: finalDefault,
-    });
+    const newAddress = await Address.create({ ...body, userId });
 
     res.status(201).json({
       success: true,
@@ -71,30 +52,24 @@ export const updateAddress = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const addressId = req.params.id;
+    const body = sanitize(req.body);
 
-    const updateData = req.body;
+    const address = await Address.findOne({
+      _id: addressId,
+      userId,
+    });
+    if (!address)
+      return res
+        .status(404)
+        .json({ success: false, message: "Address not found" });
 
-    if (updateData.isDefault) {
-      await Address.updateMany({ userId }, { isDefault: false });
-    }
-
-    const updatedAddress = await Address.findOneAndUpdate(
-      { _id: addressId, userId },
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedAddress) {
-      return res.status(404).json({
-        success: false,
-        message: "Address not found",
-      });
-    }
+    Object.assign(address, body);
+    await address.save();
 
     res.status(200).json({
       success: true,
       message: "Address updated successfully",
-      address: updatedAddress,
+      address,
     });
   } catch (error) {
     next(error);
@@ -107,22 +82,12 @@ export const deleteAddress = async (req, res, next) => {
     const userId = req.user.id;
     const addressId = req.params.id;
 
-    const address = await Address.findOne({ _id: addressId, userId });
-    if (!address) {
-      return res.status(404).json({
-        success: false,
-        message: "Address not found",
-      });
-    }
-
-    await Address.deleteOne();
-
-    if (address.isDefault) {
-      const nextAddress = await Address.findOne({ userId });
-      if (nextAddress) {
-        nextAddress.isDefault = true;
-        await nextAddress.save();
-      }
+    const address = await Address.findOneAndDelete({ _id: addressId, userId });
+    if (address?.isDefault) {
+      await Address.findOneAndUpdate(
+        { userId: req.user.id },
+        { isDefault: true }
+      );
     }
 
     res.status(200).json({

@@ -3,35 +3,21 @@ import logger from "../../utils/logger.js";
 
 export const updateOrderStatus = async (req, res, next) => {
   try {
-    const orderId = req.params.id;
     const { status } = req.body;
-
-    const allowedStatus = ["pending", "delivered", "cancelled"];
-    if (!allowedStatus.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status value",
-      });
-    }
-
     const order = await Order.findByIdAndUpdate(
-      orderId,
+      req.params.id,
       { orderStatus: status },
-      { new: true }
-    );
+      { new: true, runValidators: true }
+    ).lean();
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
 
-    return res.status(200).json({
-      success: true,
-      message: "Order status updated",
-      order,
-    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Status updated", order });
   } catch (error) {
     next(error);
     logger.error(`Error is update order status ${error.message}`);
